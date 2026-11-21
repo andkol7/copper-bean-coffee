@@ -1,15 +1,50 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { config } from '../../config.js';
-import { Session as SessionCollection } from '../../db.js';
+import { PasswordFailure as PasswordFailureCollection, Session as SessionCollection } from '../../db.js';
 import { BaseModel } from '../../lib/BaseModel.js';
-import { unauthorized } from '../../lib/errors.js';
+import { tooManyRequests, unauthorized } from '../../lib/errors.js';
 import { Otp } from '../otp/model.js';
 import { settings } from '../settings/model.js';
-import { User } from '../users/model.js';
+import { normalizeEmail, User } from '../users/model.js';
 
 // The refresh token is looked up by this hash, so it has to be deterministic: sha256, not bcrypt.
 const sha256 = (text) => createHash('sha256').update(text).digest('hex');
+
+// Wrong passwords per email (settings.passwordLock). Rate limits per IP do not stop an attack
+// spread over thousands of addresses; this counts per account instead. Only password login is
+// locked: the email code still works, so nobody can lock the real user out by typing wrong
+// passwords on purpose. Unknown emails are counted and locked the same way, so a lock does not
+// reveal whether an account exists.
+export class PasswordFailure extends BaseModel {
+  static schema = PasswordFailureCollection;
+
+  // Minutes until password login opens again for this email, or 0 if it is open.
+  static async lockedMinutes(email) {
+    const { maxFailures } = settings.passwordLock;
+    const record = await this.findOne(
+      { email: normalizeEmail(email), failures: { $gte: maxFailures }, expiresAt: { $gt: new Date() } },
+      { required: false },
+    );
+    return record ? Math.ceil((record.expiresAt - Date.now()) / 60_000) : 0;
+  }
+
+  // One more wrong password. Atomic, so parallel guesses are all counted. Each failure moves the
+  // end of the lock to lockMinutes from now.
+  static async record(email) {
+    const expiresAt = new Date(Date.now() + settings.passwordLock.lockMinutes * 60_000);
+    await this.updateOne(
+      { email: normalizeEmail(email) },
+      { $inc: { failures: 1 }, $set: { expiresAt } },
+      { upsert: true },
+    );
+  }
+
+  // A successful login (by password or by code) starts the count afresh.
+  static async clear(email) {
+    await this.deleteMany({ email: normalizeEmail(email) });
+  }
+}
 
 // A login session. Creating one is logging in, by any of three ways:
 //   await new Session({ email, password }).create()
@@ -57,11 +92,19 @@ export class Session extends BaseModel {
   }
 
   async #checkPassword(email, password) {
+    // While locked, even the right password is refused; otherwise guessing would just go on.
+    const minutes = await PasswordFailure.lockedMinutes(email);
+    if (minutes) throw tooManyRequests(settings.message('passwordLocked', { minutes }));
+
     this.#user = await User.checkCredentials(email, password);
+    if (this.#user) await PasswordFailure.clear(email);
+    else await PasswordFailure.record(email);
   }
 
   async #checkCode(email, code) {
     if (await Otp.verify(email, code)) this.#user = await User.findByEmail(email);
+    // Logging in with the code also lifts a password lock.
+    if (this.#user) await PasswordFailure.clear(email);
   }
 
   // Rotation: the token is marked used in the same atomic step that finds it, so two requests

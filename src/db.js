@@ -146,6 +146,24 @@ sessionSchema.plugin(toJSONPlugin, { hide: ['tokenHash'] });
 
 export const Session = mongoose.model('Session', sessionSchema);
 
+// ---------- PasswordFailure ----------
+
+// Wrong-password counter per email (see settings.passwordLock). Kept for unknown emails too,
+// so a lock never tells whether an account exists. Every failure pushes expiresAt forward;
+// the TTL index removes the counter once the email has been quiet long enough.
+const passwordFailureSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    failures: { type: Number, default: 0 },
+    expiresAt: { type: Date, required: true, index: { expires: 0 } },
+  },
+  { timestamps: true },
+);
+
+passwordFailureSchema.plugin(toJSONPlugin);
+
+export const PasswordFailure = mongoose.model('PasswordFailure', passwordFailureSchema);
+
 // ---------- Setting ----------
 
 // Shop settings an admin can change without a deploy (limits, email texts, messages).

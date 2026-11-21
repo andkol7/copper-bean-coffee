@@ -47,13 +47,31 @@ describe('otp', () => {
       expect(record.codeHash).to.not.include(code);
     });
 
-    it('answers the same for an unknown email, but sends nothing and stores nothing', async () => {
+    it('answers the same for an unknown email, but sends nothing there', async () => {
       const known = await askForCode();
       const unknown = await askForCode('nobody@example.com');
       expect(unknown.status).to.equal(known.status);
       expect(unknown.body).to.deep.equal(known.body);
       expect(mailer.outbox.map((m) => m.to)).to.deep.equal([EMAIL]);
-      expect(await OtpCode.countDocuments({ email: 'nobody@example.com' })).to.equal(0);
+    });
+
+    it('the resend cooldown is the same for an unknown email, so it does not reveal accounts', async () => {
+      await askForCode();
+      await askForCode('nobody@example.com');
+      const known = await askForCode();
+      const unknown = await askForCode('nobody@example.com');
+      expect(known.status).to.equal(429);
+      expect(unknown.status).to.equal(429);
+      expect(unknown.body).to.deep.equal(known.body);
+    });
+
+    it('a code issued for an unknown email cannot log anyone in', async () => {
+      await new Otp({ email: 'nobody@example.com' }).create();
+      // Nobody got the code, and even a lucky guess finds no user to log in.
+      for (const code of ['000000', '123456', '999999']) {
+        const res = await request(app).post('/api/v1/auth/sessions').send({ email: 'nobody@example.com', code });
+        expect(res.status).to.equal(401);
+      }
     });
 
     it('rejects a malformed email with 400', async () => {

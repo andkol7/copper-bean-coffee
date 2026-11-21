@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { config } from '../src/config.js';
-import { OtpCode, Session as SessionCollection, User as UserCollection } from '../src/db.js';
+import { OtpCode, PasswordFailure, Session as SessionCollection, User as UserCollection } from '../src/db.js';
 import { mailer } from '../src/lib/mailer.js';
 import { Session } from '../src/modules/sessions/model.js';
 import { settings } from '../src/modules/settings/model.js';
@@ -30,7 +30,7 @@ describe('sessions', () => {
     ann = await new User({ email: EMAIL, name: 'Ann', password: PASSWORD }).create();
   });
   afterEach(async () => {
-    await Promise.all([UserCollection.deleteMany({}), OtpCode.deleteMany({}), SessionCollection.deleteMany({})]);
+    await Promise.all([UserCollection, OtpCode, SessionCollection, PasswordFailure].map((c) => c.deleteMany({})));
     mailer.outbox.length = 0;
   });
 

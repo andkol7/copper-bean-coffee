@@ -19,12 +19,16 @@ export class Otp extends BaseModel {
   #code;
   #user;
 
-  // Creates a code for a registered email and sends it.
+  // Creates a code and sends it if the email belongs to a user.
+  // A code is issued for every email, registered or not, and only the sending depends on it.
+  // That way the answer, the resend cooldown (429) and the time taken (bcrypt) are the same
+  // either way, so none of them tells whether an account exists. A code for an unknown email
+  // is never sent, and logging in with it fails anyway: there is no such user.
   async create() {
     this.email = normalizeEmail(this.email);
     this.#user = await User.findByEmail(this.email);
+    await this.issue();
     if (this.#user) {
-      await this.issue();
       try {
         await this.send();
       } catch (err) {

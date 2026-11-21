@@ -5,9 +5,10 @@ import { sessionCreate } from './modules/sessions/schemas.js';
 
 // Every route of the app in one list. router.js turns each entry into an Express route.
 //
-// An entry: { method, path, auth?, validate?, handler }
-//   method   - 'get' | 'post' | 'patch' | 'delete'
-//   path     - full URL path, e.g. '/api/v1/products/:slug'
+// An entry: { method, path, rateLimit?, auth?, validate?, handler }
+//   method    - 'get' | 'post' | 'patch' | 'delete'
+//   path      - full URL path, e.g. '/api/v1/products/:slug'
+//   rateLimit - per-IP request limit by name from settings.rateLimits ('login', 'otp')
 //   auth     - who may call it: 'user' (anyone logged in), 'staff' (manager, admin), 'admin';
 //              no auth = public. The caller (a User) is then in req.user.
 //   validate - optional zod schemas { params?, query?, body? }; the request is checked before
@@ -25,8 +26,14 @@ export const routes = [
   },
 
   // ---------- Auth ----------
-  { method: 'post', path: '/api/v1/auth/otp', validate: { body: otpRequest }, handler: otp.create },
-  { method: 'post', path: '/api/v1/auth/sessions', validate: { body: sessionCreate }, handler: sessions.create },
+  { method: 'post', path: '/api/v1/auth/otp', rateLimit: 'otp', validate: { body: otpRequest }, handler: otp.create },
+  {
+    method: 'post',
+    path: '/api/v1/auth/sessions',
+    rateLimit: 'login',
+    validate: { body: sessionCreate },
+    handler: sessions.create,
+  },
   {
     method: 'get',
     path: '/api/v1/auth/me',

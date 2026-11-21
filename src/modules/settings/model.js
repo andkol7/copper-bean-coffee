@@ -20,6 +20,19 @@ const DEFAULTS = {
     maxAttempts: 5,
     resendCooldownSeconds: 60,
   },
+  // Requests per IP address, for routes with a `rateLimit` field in routes.js.
+  // `max` applies at once after a change; `windowMinutes` on the next restart.
+  rateLimits: {
+    login: { windowMinutes: 15, max: 10 },
+    otp: { windowMinutes: 60, max: 5 },
+  },
+  // Wrong passwords per email. After maxFailures, logging in with a password is closed for
+  // that email for lockMinutes after the last failure; logging in with an email code still works,
+  // so an attacker cannot lock the real user out.
+  passwordLock: {
+    maxFailures: 5,
+    lockMinutes: 15,
+  },
   emails: {
     otpCode: {
       subject: 'Your Copper Bean login code: {code}',
@@ -36,6 +49,8 @@ const DEFAULTS = {
     // One message for a wrong email, password or code: never say which part was wrong.
     loginFailed: 'Wrong email, password or code',
     sessionExpired: 'Your session has expired, please log in again',
+    tooManyRequests: 'Too many requests, please try again later',
+    passwordLocked: 'Too many wrong passwords. Log in with a code from your email, or try again in {minutes} min',
     authRequired: 'Please log in first',
     forbidden: 'You do not have access to this',
   },
