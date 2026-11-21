@@ -155,5 +155,9 @@ describe('sessions', () => {
   it('rejects a body that matches none of the three ways with 400', async () => {
     expect((await login({ email: EMAIL })).status).to.equal(400);
     expect((await login({ email: EMAIL, code: '12' })).status).to.equal(400);
+
+    // The answer says what to send, instead of a bare "Invalid input".
+    const res = await login({ code: '123456' }); // the email is missing
+    expect(res.body.error.details[0].message).to.equal('Send { email, password }, { email, code } or { refreshToken }');
   });
 });
