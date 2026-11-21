@@ -1,0 +1,10 @@
+node_modules/
+.env
+coverage/
+*.log
+
+# Personal working notes for Claude Code, not for the public repo
+CLAUDE.md
+
+# Draft code waiting to be reviewed and moved back into src
+_drafts/
