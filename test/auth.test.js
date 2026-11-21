@@ -107,12 +107,12 @@ describe('auth', () => {
     expect((await request(strict).post('/x').send({})).status).to.equal(401);
   });
 
-  it('GET /api/v1/auth/me returns the logged-in user without secrets', async () => {
-    const res = await get('/api/v1/auth/me', tokens.customer);
+  it('GET /api/v1/users/me returns the logged-in user without secrets', async () => {
+    const res = await get('/api/v1/users/me', tokens.customer);
     expect(res.status).to.equal(200);
     expect(res.body).to.include({ id: users.customer.id, email: 'customer@example.com', role: 'customer' });
     expect(res.body).to.not.have.property('passwordHash');
-    expect((await get('/api/v1/auth/me')).status).to.equal(401);
+    expect((await get('/api/v1/users/me')).status).to.equal(401);
   });
 
   it('routes.js with an unknown auth level does not start', () => {

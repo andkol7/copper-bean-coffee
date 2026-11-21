@@ -25,6 +25,7 @@ const DEFAULTS = {
   rateLimits: {
     login: { windowMinutes: 15, max: 10 },
     otp: { windowMinutes: 60, max: 5 },
+    register: { windowMinutes: 60, max: 10 },
   },
   // Wrong passwords per email. After maxFailures, logging in with a password is closed for
   // that email for lockMinutes after the last failure; logging in with an email code still works,
@@ -53,6 +54,9 @@ const DEFAULTS = {
     passwordLocked: 'Too many wrong passwords. Log in with a code from your email, or try again in {minutes} min',
     authRequired: 'Please log in first',
     forbidden: 'You do not have access to this',
+    ownRole: 'You cannot change your own role',
+    ownAccount: 'You cannot delete your own account here',
+    wrongCurrentPassword: 'The current password is wrong',
   },
 };
 

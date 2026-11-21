@@ -129,6 +129,25 @@ export class Session extends BaseModel {
     this.#user = await User.findById(session.user, { required: false });
   }
 
+  // Logging out ends the whole login: every token of this family, used or not.
+  async delete() {
+    await Session.deleteMany({ family: this.family });
+    return true;
+  }
+
+  // DELETE /api/v1/auth/sessions { refreshToken }: the session a refresh token belongs to.
+  // A used token still finds its session, so logging out works even right after a refresh race.
+  static async findByRefreshToken(token) {
+    const session = await this.findOne({ tokenHash: sha256(token) }, { required: false });
+    if (!session) throw unauthorized(settings.message('sessionExpired'));
+    return session;
+  }
+
+  // Ends every login of a user: after a password change or when the account is deleted.
+  static async endAllFor(userId) {
+    await this.deleteMany({ user: userId });
+  }
+
   // For the auth middleware: checks signature and expiry, returns the user id or throws 401.
   // algorithms is pinned, so a token signed some other way (or "alg": "none") is refused.
   static verifyAccessToken(token) {

@@ -34,14 +34,17 @@ export class BaseModel {
 
   // ---------- One record ----------
 
+  // Methods that change data take an options object; { actor } is the logged-in user who acts
+  // (from BaseController), for rules like "an admin cannot delete themselves". The base ignores it.
+
   // Saves a new record from this instance's fields; afterwards the instance has id, createdAt...
-  async create() {
+  async create(options = {}) {
     this.#load(await this.constructor.schema.create({ ...this }));
     return this;
   }
 
   // Changes only the given fields. runValidators: Mongoose skips schema checks on updates by default.
-  async update(changes) {
+  async update(changes, options = {}) {
     const doc = await this.constructor.schema.findOneAndUpdate(
       { _id: this.id },
       { $set: changes },
@@ -99,6 +102,12 @@ export class BaseModel {
     const doc = await query;
     if (!doc && required) throw notFound(this.schema.modelName);
     return this.fromDoc(doc);
+  }
+
+  // The database filter for a list request, from the checked query (?role=...&q=...) and the
+  // actor. Everything by default; models override it, e.g. "customers see only their own orders".
+  static listFilter(query, { actor } = {}) {
+    return {};
   }
 
   // One page of records plus the numbers a client needs to draw pagination.

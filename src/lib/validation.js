@@ -11,3 +11,14 @@ export const paginationQuery = z.object({
 export const email = z.string().trim().toLowerCase().pipe(z.email());
 
 export const otpCode = z.string().regex(/^\d{6}$/, 'The code is 6 digits');
+
+// bcrypt only looks at the first 72 bytes of a password: two longer passwords with the same
+// start would both work. So new passwords are capped at 72 bytes (not characters: Cyrillic
+// letters take 2 bytes each).
+export const newPassword = z
+  .string()
+  .min(8, 'At least 8 characters')
+  .refine((value) => Buffer.byteLength(value, 'utf8') <= 72, 'Too long: at most 72 bytes');
+
+// For user input that goes into a RegExp (search): "a.b" must mean the text "a.b", not "a" + any + "b".
+export const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

@@ -7,3 +7,6 @@ export const sessionCreate = z.union([
   z.object({ email, password: z.string().min(1).max(200) }),
   z.object({ refreshToken: z.string().min(20).max(200) }),
 ]);
+
+// DELETE /api/v1/auth/sessions: log out.
+export const sessionDelete = z.object({ refreshToken: z.string().min(20).max(200) });

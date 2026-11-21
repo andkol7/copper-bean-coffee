@@ -1,16 +1,16 @@
 import { paginationQuery } from './validation.js';
 
-// Standard REST handlers on top of a BaseModel class. A module extends it only to override
-// what differs or to add non-standard actions; the logic itself lives in the model.
+// Standard REST handlers on top of a BaseModel class. The logic lives in the model; a module
+// extends this class only for HTTP details, e.g. where the record comes from:
 //
-//   class ProductsController extends BaseController {
-//     listFilter(req) { return { active: true }; }
-//     async getBySlug(req, res) { ... }
+//   class MeController extends BaseController {
+//     findRecord(req) { return req.user; }   // /users/me instead of /users/:id
 //   }
-//   export const products = new ProductsController(Product);
 //
 // What a request may contain is declared in routes.js (`validate`), and the checked data
-// arrives here as req.valid.
+// arrives here as req.valid. Models never see req or res; they get the checked data and
+// { actor } - the logged-in user, if any - so rules like "an admin cannot delete themselves"
+// can live in the model.
 export class BaseController {
   constructor(Model) {
     this.Model = Model; // the record class, e.g. Product
@@ -39,9 +39,15 @@ export class BaseController {
     };
   }
 
-  // Override to narrow the list, e.g. customers see only their own orders.
+  // The list filter comes from the model (static listFilter), built from the checked query
+  // and the actor, e.g. "customers see only their own orders".
   listFilter(req) {
-    return {};
+    return this.Model.listFilter(req.valid?.query ?? {}, { actor: req.user });
+  }
+
+  // The record a request is about. By default the :id in the URL; override for other sources.
+  async findRecord(req) {
+    return this.Model.findById(req.params.id);
   }
 
   async list(req, res) {
@@ -51,24 +57,24 @@ export class BaseController {
   }
 
   async get(req, res) {
-    res.json(await this.Model.findById(req.params.id));
+    res.json(await this.findRecord(req));
   }
 
   // The response is whatever the record's create() returns: the saved record by default,
   // or something else when a model decides so (Otp answers with a neutral message).
   async create(req, res) {
     const record = new this.Model(validBody(req));
-    res.status(201).json(await record.create());
+    res.status(201).json(await record.create({ actor: req.user }));
   }
 
   async update(req, res) {
-    const record = await this.Model.findById(req.params.id);
-    res.json(await record.update(validBody(req)));
+    const record = await this.findRecord(req);
+    res.json(await record.update(validBody(req), { actor: req.user }));
   }
 
   async remove(req, res) {
-    const record = await this.Model.findById(req.params.id);
-    await record.delete();
+    const record = await this.findRecord(req);
+    await record.delete({ actor: req.user });
     res.status(204).end();
   }
 }
