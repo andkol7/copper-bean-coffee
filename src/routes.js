@@ -6,6 +6,8 @@ import { products } from './modules/products/controller.js';
 import { productCreate, productListQuery, productUpdate } from './modules/products/schemas.js';
 import { sessions } from './modules/sessions/controller.js';
 import { sessionCreate, sessionDelete } from './modules/sessions/schemas.js';
+import { shippingMethods } from './modules/shipping/controller.js';
+import { shippingCreate, shippingListQuery, shippingUpdate } from './modules/shipping/schemas.js';
 import { me, users } from './modules/users/controller.js';
 import { meUpdate, staffCreate, userListQuery, userRegister, userUpdate } from './modules/users/schemas.js';
 
@@ -60,4 +62,10 @@ export const routes = [
   { method: 'get', path: '/api/v1/addresses/:id', auth: 'user', handler: addresses.get },
   { method: 'patch', path: '/api/v1/addresses/:id', auth: 'user', validate: { body: addressUpdate }, handler: addresses.update },
   { method: 'delete', path: '/api/v1/addresses/:id', auth: 'user', handler: addresses.remove },
+
+  // ---------- Shipping methods ----------
+  { method: 'get', path: '/api/v1/shipping-methods', auth: 'optional', validate: { query: shippingListQuery }, handler: shippingMethods.list },
+  { method: 'post', path: '/api/v1/shipping-methods', auth: 'staff', validate: { body: shippingCreate }, handler: shippingMethods.create },
+  { method: 'patch', path: '/api/v1/shipping-methods/:id', auth: 'staff', validate: { body: shippingUpdate }, handler: shippingMethods.update },
+  { method: 'delete', path: '/api/v1/shipping-methods/:id', auth: 'staff', handler: shippingMethods.remove },
 ];

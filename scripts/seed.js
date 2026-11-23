@@ -4,6 +4,7 @@ import { config } from '../src/config.js';
 import { connectDb, disconnectDb } from '../src/db.js';
 import { email, newPassword } from '../src/lib/validation.js';
 import { Product, slugify } from '../src/modules/products/model.js';
+import { ShippingMethod } from '../src/modules/shipping/model.js';
 import { User } from '../src/modules/users/model.js';
 
 // `npm run seed`: puts the starting data into the database in config.MONGODB_URI.
@@ -70,6 +71,25 @@ export async function seedProducts() {
   return { created, existing: PRODUCTS.length - created };
 }
 
+// Delivery options. Standard and Express go inside Ukraine, International to a few countries,
+// which also shows how a country filter works. Standard is free for orders of $50 and more.
+export const SHIPPING_METHODS = [
+  { name: 'Standard', description: 'Delivery in 3-5 working days. Free for orders of $50 and more.', priceCents: 499, freeOverCents: 5000, countries: ['UA'] },
+  { name: 'Express', description: 'Next-day delivery for orders placed before noon.', priceCents: 1499, countries: ['UA'] },
+  { name: 'International', description: 'Delivery in 7-14 working days.', priceCents: 2499, countries: ['US', 'DE', 'PL', 'GB'] },
+];
+
+// Adds the methods that are not there yet, matched by name; existing ones are not touched.
+export async function seedShipping() {
+  let created = 0;
+  for (const data of SHIPPING_METHODS) {
+    if (await ShippingMethod.findOne({ name: data.name }, { required: false })) continue;
+    await new ShippingMethod(data).create();
+    created++;
+  }
+  return { created, existing: SHIPPING_METHODS.length - created };
+}
+
 async function main() {
   const db = await connectDb(config.MONGODB_URI);
   console.log(`Seeding database "${db.name}"`);
@@ -79,6 +99,8 @@ async function main() {
     console.log(`  demo customer (${DEMO_CUSTOMER.email}): ${result.demoCustomer}`);
     const products = await seedProducts();
     console.log(`  products: ${products.created} created, ${products.existing} already there`);
+    const shipping = await seedShipping();
+    console.log(`  shipping methods: ${shipping.created} created, ${shipping.existing} already there`);
   } finally {
     await disconnectDb();
   }

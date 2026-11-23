@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import request from 'supertest';
-import { DEMO_CUSTOMER, PRODUCTS, seedProducts, seedUsers } from '../scripts/seed.js';
+import { DEMO_CUSTOMER, PRODUCTS, SHIPPING_METHODS, seedProducts, seedShipping, seedUsers } from '../scripts/seed.js';
 import { createApp } from '../src/app.js';
-import { CATEGORIES, Product as ProductCollection, User as UserCollection } from '../src/db.js';
+import { CATEGORIES, Product as ProductCollection, ShippingMethod as ShippingCollection, User as UserCollection } from '../src/db.js';
 import { User } from '../src/modules/users/model.js';
 import { startDb, stopDb } from './helpers/db.js';
 
@@ -13,7 +13,7 @@ const logIn = (email, password) => request(app).post('/api/v1/auth/sessions').se
 describe('seed', () => {
   before(async () => {
     await startDb();
-    await Promise.all([UserCollection.init(), ProductCollection.init()]);
+    await Promise.all([UserCollection.init(), ProductCollection.init(), ShippingCollection.init()]);
   });
   after(stopDb);
   afterEach(() => UserCollection.deleteMany({}));
@@ -80,6 +80,26 @@ describe('seed', () => {
         expect(Number.isInteger(product.priceCents), product.name).to.equal(true);
         expect(CATEGORIES, product.name).to.include(product.category);
       }
+    });
+  });
+
+  describe('shipping methods', () => {
+    afterEach(() => ShippingCollection.deleteMany({}));
+
+    it('adds the delivery options, and a country filter finds the right ones', async () => {
+      expect(await seedShipping()).to.deep.equal({ created: SHIPPING_METHODS.length, existing: 0 });
+
+      const ua = await request(app).get('/api/v1/shipping-methods?country=UA');
+      expect(ua.body.items.map((m) => m.name)).to.deep.equal(['Standard', 'Express']);
+      const us = await request(app).get('/api/v1/shipping-methods?country=US');
+      expect(us.body.items.map((m) => m.name)).to.deep.equal(['International']);
+    });
+
+    it('can run again without duplicates, and does not undo edits', async () => {
+      await seedShipping();
+      await ShippingCollection.updateOne({ name: 'Standard' }, { priceCents: 1 });
+      expect(await seedShipping()).to.deep.equal({ created: 0, existing: SHIPPING_METHODS.length });
+      expect((await ShippingCollection.findOne({ name: 'Standard' })).priceCents).to.equal(1);
     });
   });
 

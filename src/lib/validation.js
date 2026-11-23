@@ -20,6 +20,13 @@ export const newPassword = z
   .min(8, 'At least 8 characters')
   .refine((value) => Buffer.byteLength(value, 'utf8') <= 72, 'Too long: at most 72 bytes');
 
+// A two-letter ISO country code in any case ("ua"), stored upper case ("UA").
+export const countryCode = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z]{2}$/, 'A two-letter country code, like UA')
+  .transform((code) => code.toUpperCase());
+
 // A phone number as people write it: +380 67 123 45 67, (067) 123-45-67.
 export const phone = z
   .string()
