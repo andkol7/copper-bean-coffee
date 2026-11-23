@@ -130,6 +130,11 @@ export class BaseModel {
     return { items: docs.map((doc) => this.fromDoc(doc)), page, limit, total, pages: Math.ceil(total / limit) };
   }
 
+  // How many records match the filter.
+  static async count(filter = {}) {
+    return this.schema.countDocuments(filter);
+  }
+
   // Deletes every record matching the filter; returns how many were deleted.
   static async deleteMany(filter) {
     const { deletedCount } = await this.schema.deleteMany(filter);

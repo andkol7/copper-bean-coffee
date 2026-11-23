@@ -20,6 +20,12 @@ export const newPassword = z
   .min(8, 'At least 8 characters')
   .refine((value) => Buffer.byteLength(value, 'utf8') <= 72, 'Too long: at most 72 bytes');
 
+// A phone number as people write it: +380 67 123 45 67, (067) 123-45-67.
+export const phone = z
+  .string()
+  .trim()
+  .regex(/^\+?[0-9 ()-]{7,20}$/, 'A phone number like +380 67 123 45 67');
+
 // For PATCH bodies: every field is optional, but an empty body changes nothing, so it is refused.
 export const atLeastOneField = (schema) =>
   schema.refine((value) => Object.keys(value).length > 0, 'Send at least one field to change');

@@ -1,15 +1,11 @@
 import { z } from 'zod';
 import { ROLES } from '../../db.js';
-import { atLeastOneField, email, newPassword } from '../../lib/validation.js';
+import { atLeastOneField, email, newPassword, phone } from '../../lib/validation.js';
 
 // Each route gets exactly the fields its caller may set. Fields not listed are dropped,
 // so e.g. a registering customer cannot send role: 'admin'.
 
 const name = z.string().trim().min(1).max(100);
-const phone = z
-  .string()
-  .trim()
-  .regex(/^\+?[0-9 ()-]{7,20}$/, 'A phone number like +380 67 123 45 67');
 
 // POST /api/v1/users - anyone registers, always as a customer.
 export const userRegister = z.object({ email, name, password: newPassword, phone: phone.optional() });

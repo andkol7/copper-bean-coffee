@@ -1,3 +1,5 @@
+import { addresses } from './modules/addresses/controller.js';
+import { addressCreate, addressUpdate } from './modules/addresses/schemas.js';
 import { otp } from './modules/otp/controller.js';
 import { otpRequest } from './modules/otp/schemas.js';
 import { products } from './modules/products/controller.js';
@@ -51,4 +53,11 @@ export const routes = [
   { method: 'post', path: '/api/v1/products', auth: 'staff', validate: { body: productCreate }, handler: products.create },
   { method: 'patch', path: '/api/v1/products/:id', auth: 'staff', validate: { body: productUpdate }, handler: products.update },
   { method: 'delete', path: '/api/v1/products/:id', auth: 'staff', handler: products.remove },
+
+  // ---------- Addresses (each user's own) ----------
+  { method: 'get', path: '/api/v1/addresses', auth: 'user', handler: addresses.list },
+  { method: 'post', path: '/api/v1/addresses', auth: 'user', validate: { body: addressCreate }, handler: addresses.create },
+  { method: 'get', path: '/api/v1/addresses/:id', auth: 'user', handler: addresses.get },
+  { method: 'patch', path: '/api/v1/addresses/:id', auth: 'user', validate: { body: addressUpdate }, handler: addresses.update },
+  { method: 'delete', path: '/api/v1/addresses/:id', auth: 'user', handler: addresses.remove },
 ];
