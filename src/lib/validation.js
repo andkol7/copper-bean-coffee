@@ -7,6 +7,9 @@ export const paginationQuery = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });
 
+// A MongoDB id as text: 24 hex characters.
+export const objectId = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid id');
+
 // Trimmed and lowercased before the format check, the same way the User schema stores it.
 export const email = z.string().trim().toLowerCase().pipe(z.email());
 

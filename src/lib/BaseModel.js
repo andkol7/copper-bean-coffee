@@ -64,6 +64,19 @@ export class BaseModel {
     return doc !== null;
   }
 
+  // Applies a MongoDB update ($set, $push...) to this record only if it still matches `where`
+  // (say, its old status), in one atomic step. Returns false when it no longer matches, because
+  // somebody else got there first; the record is left as it was. Otherwise the record is reloaded.
+  async updateIf(where, update) {
+    const doc = await this.constructor.schema.findOneAndUpdate({ _id: this.id, ...where }, update, {
+      new: true,
+      runValidators: true,
+    });
+    if (!doc) return false;
+    this.#load(doc);
+    return true;
+  }
+
   // What res.json() sends. A loaded record uses the schema's toJSON (id instead of _id,
   // hidden fields such as passwordHash removed).
   toJSON() {

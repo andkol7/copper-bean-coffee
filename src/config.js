@@ -14,6 +14,9 @@ const schema = z.object({
   // Used only by `npm run seed`, to create the first admin.
   SEED_ADMIN_EMAIL: z.string().optional(),
   SEED_ADMIN_PASSWORD: z.string().optional(),
+  // Run the periodic jobs (src/jobs) inside the server process. Right for one small instance,
+  // like the demo on Render. Set false when something else runs `npm run job` on a schedule.
+  RUN_JOBS: z.stringbool().default(true),
 });
 
 const env = Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== ''));

@@ -26,6 +26,7 @@ const DEFAULTS = {
     login: { windowMinutes: 15, max: 10 },
     otp: { windowMinutes: 60, max: 5 },
     register: { windowMinutes: 60, max: 10 },
+    order: { windowMinutes: 60, max: 20 },
   },
   // Wrong passwords per email. After maxFailures, logging in with a password is closed for
   // that email for lockMinutes after the last failure; logging in with an email code still works,
@@ -33,6 +34,16 @@ const DEFAULTS = {
   passwordLock: {
     maxFailures: 5,
     lockMinutes: 15,
+  },
+  // Order numbers are prefix + a counting number: CB-1001, CB-1002...
+  // An order that is not paid within unpaidExpireMinutes is cancelled and its stock goes back
+  // on the shelf (checked every sweepMinutes). Without this, anybody could empty the shop by
+  // placing orders and never paying.
+  orders: {
+    numberPrefix: 'CB-',
+    numberStart: 1001,
+    unpaidExpireMinutes: 60,
+    sweepMinutes: 5,
   },
   // How many saved addresses one customer may keep.
   addresses: {
@@ -58,6 +69,13 @@ const DEFAULTS = {
     passwordLocked: 'Too many wrong passwords. Log in with a code from your email, or try again in {minutes} min',
     authRequired: 'Please log in first',
     forbidden: 'You do not have access to this',
+    productUnavailable: 'A product in your order is not available any more',
+    notEnoughStock: 'Not enough {name} in stock (left: {left})',
+    shippingUnavailable: 'This shipping method is not available',
+    shippingNotThere: 'This shipping method does not deliver to {country}',
+    statusNotAllowed: 'An order cannot go from {from} to {to}',
+    statusChanged: 'The order was changed by somebody else, please reload it',
+    orderExpired: 'Payment time ran out',
     addressLimit: 'You can keep up to {max} addresses, please delete one first',
     slugNeeded: 'The slug could not be made from the name, please send one (letters, digits, hyphens)',
     ownRole: 'You cannot change your own role',

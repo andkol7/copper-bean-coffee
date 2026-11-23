@@ -11,6 +11,7 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "seed": "node scripts/seed.js",
+    "job": "node scripts/job.js",
     "test": "mocha"
   },
   "license": "MIT",

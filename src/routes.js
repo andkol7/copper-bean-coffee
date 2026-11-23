@@ -1,5 +1,7 @@
 import { addresses } from './modules/addresses/controller.js';
 import { addressCreate, addressUpdate } from './modules/addresses/schemas.js';
+import { orders } from './modules/orders/controller.js';
+import { orderCreate, orderListQuery, orderStatusChange } from './modules/orders/schemas.js';
 import { otp } from './modules/otp/controller.js';
 import { otpRequest } from './modules/otp/schemas.js';
 import { products } from './modules/products/controller.js';
@@ -16,7 +18,7 @@ import { meUpdate, staffCreate, userListQuery, userRegister, userUpdate } from '
 // An entry: { method, path, rateLimit?, auth?, validate?, handler }
 //   method    - 'get' | 'post' | 'patch' | 'delete'
 //   path      - full URL path, e.g. '/api/v1/products/:slug'
-//   rateLimit - per-IP request limit by name from settings.rateLimits ('login', 'otp', 'register')
+//   rateLimit - per-IP request limit by name from settings.rateLimits ('login', 'otp', 'register', 'order')
 //   auth      - who may call it: 'user' (anyone logged in), 'staff' (manager, admin), 'admin',
 //               or 'optional' (a guest or anyone logged in; req.user is set only if a token came);
 //               no auth = public. The caller (a User) is then in req.user.
@@ -68,4 +70,10 @@ export const routes = [
   { method: 'post', path: '/api/v1/shipping-methods', auth: 'staff', validate: { body: shippingCreate }, handler: shippingMethods.create },
   { method: 'patch', path: '/api/v1/shipping-methods/:id', auth: 'staff', validate: { body: shippingUpdate }, handler: shippingMethods.update },
   { method: 'delete', path: '/api/v1/shipping-methods/:id', auth: 'staff', handler: shippingMethods.remove },
+
+  // ---------- Orders (customers: their own; staff: all) ----------
+  { method: 'post', path: '/api/v1/orders', rateLimit: 'order', auth: 'user', validate: { body: orderCreate }, handler: orders.create },
+  { method: 'get', path: '/api/v1/orders', auth: 'user', validate: { query: orderListQuery }, handler: orders.list },
+  { method: 'get', path: '/api/v1/orders/:id', auth: 'user', handler: orders.get },
+  { method: 'patch', path: '/api/v1/orders/:id', auth: 'user', validate: { body: orderStatusChange }, handler: orders.update },
 ];

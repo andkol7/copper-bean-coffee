@@ -15,3 +15,6 @@ export async function stopDb() {
   await disconnectDb();
   await mongod?.stop();
 }
+
+// The address of this test database, for tests that start another process against it.
+export const dbUri = () => mongod.getUri();
