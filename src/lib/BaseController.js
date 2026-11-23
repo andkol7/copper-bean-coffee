@@ -53,7 +53,8 @@ export class BaseController {
   async list(req, res) {
     // Pagination is the same for every list, so it is checked here, not in each route.
     const { page, limit } = paginationQuery.parse(req.query);
-    res.json(await this.Model.list(this.listFilter(req), { page, limit }));
+    const options = this.Model.listOptions(req.valid?.query ?? {}, { actor: req.user });
+    res.json(await this.Model.list(this.listFilter(req), { ...options, page, limit }));
   }
 
   async get(req, res) {

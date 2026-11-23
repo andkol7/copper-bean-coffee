@@ -70,7 +70,8 @@ productSchema.index({ active: 1, category: 1, priceCents: 1 });
 // Full-text search over name and description; a match in the name counts five times more.
 productSchema.index({ name: 'text', description: 'text' }, { weights: { name: 5, description: 1 } });
 
-productSchema.plugin(toJSONPlugin);
+// `score` is the search relevance MongoDB adds to text search results; it is not a product field.
+productSchema.plugin(toJSONPlugin, { hide: ['score'] });
 
 export const Product = mongoose.model('Product', productSchema);
 
@@ -78,6 +79,8 @@ export const Product = mongoose.model('Product', productSchema);
 
 // customer: buys in the shop. manager: works in the CRM. admin: everything, incl. managing staff.
 export const ROLES = ['admin', 'manager', 'customer'];
+// Roles that work in the CRM: they see and change what customers cannot.
+export const STAFF_ROLES = ['manager', 'admin'];
 
 const userSchema = new mongoose.Schema(
   {

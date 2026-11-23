@@ -110,31 +110,35 @@ export class BaseModel {
     return {};
   }
 
+  // The sort order and fields for a list request, as { sort, select }, from the checked query
+  // and the actor, e.g. ?sort=price_asc. Newest first by default.
+  static listOptions(query, { actor } = {}) {
+    return {};
+  }
+
   // One page of records plus the numbers a client needs to draw pagination.
   // _id breaks ties between records created in the same millisecond; without it the
   // order is undefined and a record can show up on two pages or on none.
-  static async list(filter = {}, { page = 1, limit = 20, sort = { createdAt: -1, _id: -1 } } = {}) {
+  // select: which fields to load or add, e.g. a search score.
+  static async list(filter = {}, { page = 1, limit = 20, sort = { createdAt: -1, _id: -1 }, select } = {}) {
+    const query = this.schema.find(filter);
+    if (select) query.select(select);
     const [docs, total] = await Promise.all([
-      this.schema
-        .find(filter)
-        .sort(sort)
-        .skip((page - 1) * limit)
-        .limit(limit),
+      query.sort(sort).skip((page - 1) * limit).limit(limit),
       this.schema.countDocuments(filter),
     ]);
     return { items: docs.map((doc) => this.fromDoc(doc)), page, limit, total, pages: Math.ceil(total / limit) };
   }
 
-  // Finds one record and applies a MongoDB update ($set, $inc...) in a single atomic step.
-  // Atomic matters for counters: two parallel requests cannot both read "attempts: 4" and
-  // both get a fifth try.
   // Deletes every record matching the filter; returns how many were deleted.
   static async deleteMany(filter) {
     const { deletedCount } = await this.schema.deleteMany(filter);
     return deletedCount;
   }
 
-  // upsert: true creates the record if nothing matches the filter.
+  // Finds one record and applies a MongoDB update ($set, $inc...) in a single atomic step.
+  // Atomic matters for counters: two parallel requests cannot both read "attempts: 4" and
+  // both get a fifth try. upsert: true creates the record if nothing matches the filter.
   static async updateOne(filter, update, { required = true, upsert = false } = {}) {
     const doc = await this.schema.findOneAndUpdate(filter, update, { new: true, runValidators: true, upsert });
     if (!doc && required) throw notFound(this.schema.modelName);

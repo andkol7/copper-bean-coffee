@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import request from 'supertest';
-import { DEMO_CUSTOMER, seedUsers } from '../scripts/seed.js';
+import { DEMO_CUSTOMER, PRODUCTS, seedProducts, seedUsers } from '../scripts/seed.js';
 import { createApp } from '../src/app.js';
-import { User as UserCollection } from '../src/db.js';
+import { CATEGORIES, Product as ProductCollection, User as UserCollection } from '../src/db.js';
 import { User } from '../src/modules/users/model.js';
 import { startDb, stopDb } from './helpers/db.js';
 
@@ -13,7 +13,7 @@ const logIn = (email, password) => request(app).post('/api/v1/auth/sessions').se
 describe('seed', () => {
   before(async () => {
     await startDb();
-    await UserCollection.init();
+    await Promise.all([UserCollection.init(), ProductCollection.init()]);
   });
   after(stopDb);
   afterEach(() => UserCollection.deleteMany({}));
@@ -51,6 +51,36 @@ describe('seed', () => {
       expect(err.name).to.equal('ZodError');
     }
     expect(await UserCollection.countDocuments()).to.equal(0);
+  });
+
+  describe('products', () => {
+    afterEach(() => ProductCollection.deleteMany({}));
+
+    it('puts the shop window into the database, with one sold out and one hidden product', async () => {
+      expect(await seedProducts()).to.deep.equal({ created: PRODUCTS.length, existing: 0 });
+
+      const onSale = await request(app).get('/api/v1/products?limit=50');
+      expect(onSale.body.total).to.equal(PRODUCTS.filter((p) => p.active !== false).length);
+      expect(onSale.body.items.some((p) => p.stock === 0)).to.equal(true);
+      expect(onSale.body.items.some((p) => p.slug === 'kenya-aa')).to.equal(false);
+      expect(new Set(onSale.body.items.map((p) => p.slug)).size).to.equal(onSale.body.items.length);
+    });
+
+    it('can run again without duplicates, and does not undo edits', async () => {
+      await seedProducts();
+      await ProductCollection.updateOne({ slug: 'earl-grey' }, { priceCents: 1 });
+
+      expect(await seedProducts()).to.deep.equal({ created: 0, existing: PRODUCTS.length });
+      expect(await ProductCollection.countDocuments()).to.equal(PRODUCTS.length);
+      expect((await ProductCollection.findOne({ slug: 'earl-grey' })).priceCents).to.equal(1);
+    });
+
+    it('every product follows the rules of the schema: whole cents, known category', async () => {
+      for (const product of PRODUCTS) {
+        expect(Number.isInteger(product.priceCents), product.name).to.equal(true);
+        expect(CATEGORIES, product.name).to.include(product.category);
+      }
+    });
   });
 
   it('the demo customer has no extra rights', async () => {

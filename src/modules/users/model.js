@@ -1,4 +1,4 @@
-import { User as UserCollection } from '../../db.js';
+import { STAFF_ROLES, User as UserCollection } from '../../db.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 import { badRequest, forbidden } from '../../lib/errors.js';
 import { hashPassword, verifyPassword } from '../../lib/password.js';
@@ -16,6 +16,11 @@ export const normalizeEmail = (email) => email.trim().toLowerCase();
 export class User extends BaseModel {
   static schema = UserCollection;
   static required = ['email', 'name', 'password'];
+
+  // A manager or an admin. A getter on the class, so it is never saved or sent in JSON.
+  get isStaff() {
+    return STAFF_ROLES.includes(this.role);
+  }
 
   async create(options) {
     this.passwordHash = await hashPassword(this.password);

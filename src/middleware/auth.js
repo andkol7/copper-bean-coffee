@@ -1,17 +1,21 @@
-import { ROLES } from '../db.js';
+import { ROLES, STAFF_ROLES } from '../db.js';
 import { forbidden, unauthorized } from '../lib/errors.js';
 import { Session } from '../modules/sessions/model.js';
 import { settings } from '../modules/settings/model.js';
 import { User } from '../modules/users/model.js';
 
 // Who may call a route, by the `auth` field of its entry in routes.js:
-//   auth: 'user'  - anyone logged in
-//   auth: 'staff' - managers and admins
-//   auth: 'admin' - admins only
-// No `auth` field means a public route.
+//   auth: 'optional' - anyone; logged in or not. A token that is sent must still be good
+//                      (req.user is set), a request without one goes on as a guest (no req.user).
+//                      For public pages that show more to staff, e.g. hidden products.
+//   auth: 'user'     - anyone logged in
+//   auth: 'staff'    - managers and admins
+//   auth: 'admin'    - admins only
+// No `auth` field means a public route that never looks at the token.
 export const AUTH_LEVELS = {
+  optional: ROLES,
   user: ROLES,
-  staff: ['manager', 'admin'],
+  staff: STAFF_ROLES,
   admin: ['admin'],
 };
 
@@ -23,7 +27,10 @@ export const requireAuth = (level) => {
   const allowed = AUTH_LEVELS[level];
 
   return async (req, res, next) => {
-    const [scheme, token] = (req.get('authorization') ?? '').split(' ');
+    const header = req.get('authorization');
+    if (level === 'optional' && !header) return next(); // a guest
+
+    const [scheme, token] = (header ?? '').split(' ');
     if (scheme !== 'Bearer' || !token) throw unauthorized(settings.message('authRequired'));
 
     // Signature and expiry; the token carries only the user id.

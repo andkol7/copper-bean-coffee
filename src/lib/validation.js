@@ -20,5 +20,9 @@ export const newPassword = z
   .min(8, 'At least 8 characters')
   .refine((value) => Buffer.byteLength(value, 'utf8') <= 72, 'Too long: at most 72 bytes');
 
+// For PATCH bodies: every field is optional, but an empty body changes nothing, so it is refused.
+export const atLeastOneField = (schema) =>
+  schema.refine((value) => Object.keys(value).length > 0, 'Send at least one field to change');
+
 // For user input that goes into a RegExp (search): "a.b" must mean the text "a.b", not "a" + any + "b".
 export const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

@@ -54,6 +54,7 @@ const DEFAULTS = {
     passwordLocked: 'Too many wrong passwords. Log in with a code from your email, or try again in {minutes} min',
     authRequired: 'Please log in first',
     forbidden: 'You do not have access to this',
+    slugNeeded: 'The slug could not be made from the name, please send one (letters, digits, hyphens)',
     ownRole: 'You cannot change your own role',
     ownAccount: 'You cannot delete your own account here',
     wrongCurrentPassword: 'The current password is wrong',

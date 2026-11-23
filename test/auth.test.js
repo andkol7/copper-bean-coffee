@@ -19,6 +19,7 @@ const app = createApp({
     { method: 'get', path: '/test/user', auth: 'user', handler: whoAmI },
     { method: 'get', path: '/test/staff', auth: 'staff', handler: whoAmI },
     { method: 'get', path: '/test/admin', auth: 'admin', handler: whoAmI },
+    { method: 'get', path: '/test/optional', auth: 'optional', handler: async (req, res) => res.json({ user: req.user?.id ?? null }) },
   ],
 });
 
@@ -113,6 +114,19 @@ describe('auth', () => {
     expect(res.body).to.include({ id: users.customer.id, email: 'customer@example.com', role: 'customer' });
     expect(res.body).to.not.have.property('passwordHash');
     expect((await get('/api/v1/users/me')).status).to.equal(401);
+  });
+
+  it('optional: a guest goes on, a good token sets req.user, a bad token is refused', async () => {
+    expect((await get('/test/optional')).body).to.deep.equal({ user: null });
+    expect((await get('/test/optional', tokens.customer)).body).to.deep.equal({ user: users.customer.id });
+
+    // A token that was sent has to be valid: a stale one is told so, instead of being treated as a guest.
+    const expired = jwt.sign({}, config.JWT_SECRET, { subject: users.admin.id, expiresIn: -1 });
+    expect((await get('/test/optional', expired)).status).to.equal(401);
+    expect((await get('/test/optional', 'not-a-jwt')).status).to.equal(401);
+
+    await users.customer.delete();
+    expect((await get('/test/optional', tokens.customer)).status).to.equal(401); // the user is gone
   });
 
   it('routes.js with an unknown auth level does not start', () => {
