@@ -19,6 +19,9 @@ an architecture diagram comes with the release.
   numbers like `CB-1042`, a status state machine, unpaid orders cancelled automatically.
 - **CRM:** customers with order statistics (one MongoDB aggregation), user management, safe user deletion
   (personal data wiped when the account has orders).
+- **Website:** shop, product pages, cart and checkout, login (password, email code, registration), my account
+  with addresses and orders, and order pages where staff move orders along. Plain HTML and browser
+  JavaScript calling the same API, no framework and no build step.
 - **API docs:** Swagger UI at `/docs`, generated from the route list, so the docs match the code.
 - **Tests:** about 270 tests on a real in-memory MongoDB, including parallel-request races.
 
@@ -39,7 +42,7 @@ npm run seed            # an admin, a demo customer, products and shipping metho
 npm run dev             # http://localhost:3000
 ```
 
-Open **http://localhost:3000/docs** to try the API in the browser.
+Open **http://localhost:3000** for the shop, or **http://localhost:3000/docs** to try the API directly.
 
 ### Settings in `.env`
 
@@ -87,6 +90,7 @@ src/
   middleware/        auth, rate limits, validation, errors
   jobs/              periodic jobs and the in-server scheduler
   docs/              the OpenAPI description, built from routes.js
+public/              the website: HTML pages, one stylesheet, browser JavaScript (js/pages/ has one file per page)
 scripts/             seed.js, job.js
 test/                one file per area
 ```

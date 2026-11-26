@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
@@ -26,6 +27,11 @@ export function createApp({ routes, rateLimits = config.NODE_ENV !== 'test' } = 
 
   // JSON bodies only, and small ones: an API like this never needs more.
   app.use(express.json({ limit: '100kb' }));
+
+  // The website: plain HTML pages with browser JavaScript that calls this same API (public/).
+  // /cart finds cart.html, / finds index.html. Only files that exist are served; everything else
+  // goes on to the API routes below.
+  app.use(express.static(fileURLToPath(new URL('../public', import.meta.url)), { extensions: ['html'] }));
 
   // All routes come from src/routes.js.
   app.use(buildRouter(routes, { rateLimits }));
