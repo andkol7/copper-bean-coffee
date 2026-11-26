@@ -85,6 +85,7 @@ describe('otp', () => {
       await askForCode();
       const res = await askForCode();
       expect(res.status).to.equal(429);
+      expect(Number(res.headers['retry-after'])).to.be.within(1, 60);
       expect(mailer.outbox).to.have.length(1);
     });
 

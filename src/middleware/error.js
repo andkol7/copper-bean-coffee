@@ -13,7 +13,10 @@ export function notFoundHandler(req, res) {
 export function errorHandler(err, req, res, next) {
   if (res.headersSent) return next(err);
 
-  if (err instanceof HttpError) return send(res, err.status, err.code, err.message, err.details);
+  if (err instanceof HttpError) {
+    if (err.retryAfterSeconds) res.set('Retry-After', String(err.retryAfterSeconds));
+    return send(res, err.status, err.code, err.message, err.details);
+  }
 
   if (err instanceof ZodError) {
     const details = err.issues.map((issue) => ({ path: issue.path.map(String).join('.'), message: issue.message }));

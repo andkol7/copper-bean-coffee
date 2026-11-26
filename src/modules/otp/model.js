@@ -48,7 +48,8 @@ export class Otp extends BaseModel {
     if (previous) {
       const secondsSince = (Date.now() - previous.createdAt.getTime()) / 1000;
       if (secondsSince < resendCooldownSeconds) {
-        throw tooManyRequests(settings.message('otpCooldown', { seconds: Math.ceil(resendCooldownSeconds - secondsSince) }));
+        const seconds = Math.ceil(resendCooldownSeconds - secondsSince);
+        throw tooManyRequests(settings.message('otpCooldown', { seconds }), seconds);
       }
       await previous.delete({ required: false });
     }

@@ -86,6 +86,8 @@ describe('limits', () => {
       const res = await login({ email: EMAIL, password: PASSWORD });
       expect(res.status).to.equal(429);
       expect(res.body.error.message).to.equal(settings.message('passwordLocked', { minutes: 15 }));
+      // The client also gets it as a number: about 15 minutes, in seconds.
+      expect(Number(res.headers['retry-after'])).to.be.within(14 * 60, 15 * 60);
     });
 
     it('below the limit the right password still works and clears the count', async () => {

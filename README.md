@@ -76,6 +76,8 @@ Money is always in cents as whole numbers: `1450` means $14.50.
 | `npm test` | Runs all tests on a throwaway in-memory MongoDB (your database is not touched) |
 | `npm run seed` | Adds the starting data; safe to run again, never overwrites what is there |
 | `npm run job` | Lists the periodic jobs; `npm run job -- expire-orders` runs one, e.g. from cron |
+| `npm run smoke` | Calls every API route against a real server, on a throwaway copy of the database from `.env` that is dropped afterwards |
+| `npm run check:ui` | Clicks through the website in a headless Edge or Chrome, also on a throwaway database |
 
 ## How the code is organised
 
@@ -103,3 +105,7 @@ an unpaid order waits) are settings with defaults in code that an admin can over
 
 Taxes are not calculated: prices are final prices. A real shop would use a tax service such as
 Stripe Tax. Payments run in Stripe's test mode only, starting from phase 2.
+
+## License
+
+No license is granted. The code is published to be read and reviewed; all rights are reserved.

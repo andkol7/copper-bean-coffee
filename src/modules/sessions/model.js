@@ -21,12 +21,17 @@ export class PasswordFailure extends BaseModel {
 
   // Minutes until password login opens again for this email, or 0 if it is open.
   static async lockedMinutes(email) {
+    return Math.ceil((await this.lockedSeconds(email)) / 60);
+  }
+
+  // Seconds until password login opens again for this email, or 0 if it is open.
+  static async lockedSeconds(email) {
     const { maxFailures } = settings.passwordLock;
     const record = await this.findOne(
       { email: normalizeEmail(email), failures: { $gte: maxFailures }, expiresAt: { $gt: new Date() } },
       { required: false },
     );
-    return record ? Math.ceil((record.expiresAt - Date.now()) / 60_000) : 0;
+    return record ? Math.ceil((record.expiresAt - Date.now()) / 1000) : 0;
   }
 
   // One more wrong password. Atomic, so parallel guesses are all counted. Each failure moves the
@@ -94,7 +99,7 @@ export class Session extends BaseModel {
   async #checkPassword(email, password) {
     // While locked, even the right password is refused; otherwise guessing would just go on.
     const minutes = await PasswordFailure.lockedMinutes(email);
-    if (minutes) throw tooManyRequests(settings.message('passwordLocked', { minutes }));
+    if (minutes) throw tooManyRequests(settings.message('passwordLocked', { minutes }), await PasswordFailure.lockedSeconds(email));
 
     this.#user = await User.checkCredentials(email, password);
     if (this.#user) await PasswordFailure.clear(email);
