@@ -1,6 +1,8 @@
 import express from 'express';
 import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
 import { config } from './config.js';
+import { buildOpenApi } from './docs/openapi.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { buildRouter } from './router.js';
 
@@ -17,13 +19,22 @@ export function createApp({ routes, rateLimits = config.NODE_ENV !== 'test' } = 
   app.set('trust proxy', 1);
 
   // Security headers (no sniffing, no framing, etc.) and no "X-Powered-By: Express".
-  app.use(helmet());
+  // One change to the defaults: no "upgrade-insecure-requests", which would make
+  // the browser fetch the /docs page's scripts over https even on http://localhost. On Render the
+  // whole site is https anyway, so nothing is lost there.
+  app.use(helmet({ contentSecurityPolicy: { directives: { upgradeInsecureRequests: null } } }));
 
   // JSON bodies only, and small ones: an API like this never needs more.
   app.use(express.json({ limit: '100kb' }));
 
   // All routes come from src/routes.js.
   app.use(buildRouter(routes, { rateLimits }));
+
+  // API docs, built from the same route list (src/docs/openapi.js). They live outside routes.js
+  // because they are not part of the API: Swagger UI serves a page plus its own script files.
+  const openApi = buildOpenApi(routes);
+  app.get('/docs/openapi.json', (req, res) => res.json(openApi));
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApi, { customSiteTitle: 'Copper Bean Coffee API' }));
 
   // These two go last. A request no route answered gets a JSON 404, and any thrown
   // error ends up in errorHandler (Express 5 also catches rejected async handlers).

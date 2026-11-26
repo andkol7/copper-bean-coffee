@@ -27,7 +27,7 @@ export class BaseController {
   // The error is tagged with "Controller.method", so a 500 in the server log says where it happened.
   wrap(name, method) {
     const where = `${this.constructor.name}.${name}`;
-    return async (...args) => {
+    const wrapped = async (...args) => {
       try {
         return await method.apply(this, args);
       } catch (err) {
@@ -37,6 +37,10 @@ export class BaseController {
         next(err);
       }
     };
+    // Keeps the method's name (instead of an anonymous arrow), for stack traces and for the API
+    // docs, which tell a list (it takes ?page and ?limit) by its handler's name.
+    Object.defineProperty(wrapped, 'name', { value: name });
+    return wrapped;
   }
 
   // The list filter comes from the model (static listFilter), built from the checked query
