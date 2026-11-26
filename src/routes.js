@@ -1,5 +1,7 @@
 import { addresses } from './modules/addresses/controller.js';
 import { addressCreate, addressUpdate } from './modules/addresses/schemas.js';
+import { customers } from './modules/customers/controller.js';
+import { customerListQuery } from './modules/customers/schemas.js';
 import { orders } from './modules/orders/controller.js';
 import { orderCreate, orderListQuery, orderStatusChange } from './modules/orders/schemas.js';
 import { otp } from './modules/otp/controller.js';
@@ -76,4 +78,8 @@ export const routes = [
   { method: 'get', path: '/api/v1/orders', auth: 'user', validate: { query: orderListQuery }, handler: orders.list },
   { method: 'get', path: '/api/v1/orders/:id', auth: 'user', handler: orders.get },
   { method: 'patch', path: '/api/v1/orders/:id', auth: 'user', validate: { body: orderStatusChange }, handler: orders.update },
+
+  // ---------- Customers (CRM, read only: users with the role customer, with their order stats) ----------
+  { method: 'get', path: '/api/v1/customers', auth: 'staff', validate: { query: customerListQuery }, handler: customers.list },
+  { method: 'get', path: '/api/v1/customers/:id', auth: 'staff', handler: customers.get },
 ];

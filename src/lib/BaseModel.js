@@ -143,6 +143,12 @@ export class BaseModel {
     return { items: docs.map((doc) => this.fromDoc(doc)), page, limit, total, pages: Math.ceil(total / limit) };
   }
 
+  // Runs a MongoDB aggregation pipeline and returns plain objects (not records): its results are
+  // computed rows such as statistics, not documents of this collection.
+  static async aggregate(pipeline) {
+    return this.schema.aggregate(pipeline);
+  }
+
   // How many records match the filter.
   static async count(filter = {}) {
     return this.schema.countDocuments(filter);

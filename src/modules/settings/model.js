@@ -45,6 +45,10 @@ const DEFAULTS = {
     unpaidExpireMinutes: 60,
     sweepMinutes: 5,
   },
+  // The customer card in the CRM shows this many latest orders.
+  customers: {
+    recentOrders: 5,
+  },
   // How many saved addresses one customer may keep.
   addresses: {
     maxPerUser: 10,

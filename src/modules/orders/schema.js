@@ -6,6 +6,8 @@ import { toJSONPlugin } from '../../db.js';
 // ---------- Order ----------
 
 export const ORDER_STATUSES = ['pending_payment', 'paid', 'shipped', 'completed', 'cancelled', 'refunded'];
+// Orders whose money the shop has: what a customer has "spent" (a refund takes it back out).
+export const SPENT_STATUSES = ['paid', 'shipped', 'completed'];
 
 const { ObjectId } = mongoose.Schema.Types;
 
