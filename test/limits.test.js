@@ -1,7 +1,10 @@
 import { expect } from 'chai';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { OtpCode, PasswordFailure as PasswordFailureCollection, Session, Setting, User as UserCollection } from '../src/db.js';
+import { OtpCodeCollection as OtpCode } from '../src/modules/otp/schema.js';
+import { PasswordFailureCollection, SessionCollection as Session } from '../src/modules/sessions/schema.js';
+import { SettingCollection as Setting } from '../src/modules/settings/schema.js';
+import { UserCollection } from '../src/modules/users/schema.js';
 import { mailer } from '../src/lib/mailer.js';
 import { buildRouter } from '../src/router.js';
 import { settings } from '../src/modules/settings/model.js';

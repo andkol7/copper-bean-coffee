@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Setting } from '../src/db.js';
+import { SettingCollection as Setting } from '../src/modules/settings/schema.js';
 import { settings } from '../src/modules/settings/model.js';
 import { startDb, stopDb } from './helpers/db.js';
 

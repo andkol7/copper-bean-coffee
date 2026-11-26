@@ -2,7 +2,9 @@ import { expect } from 'chai';
 import request from 'supertest';
 import { DEMO_CUSTOMER, PRODUCTS, SHIPPING_METHODS, seedProducts, seedShipping, seedUsers } from '../scripts/seed.js';
 import { createApp } from '../src/app.js';
-import { CATEGORIES, Product as ProductCollection, ShippingMethod as ShippingCollection, User as UserCollection } from '../src/db.js';
+import { CATEGORIES, ProductCollection } from '../src/modules/products/schema.js';
+import { ShippingMethodCollection as ShippingCollection } from '../src/modules/shipping/schema.js';
+import { UserCollection } from '../src/modules/users/schema.js';
 import { User } from '../src/modules/users/model.js';
 import { startDb, stopDb } from './helpers/db.js';
 

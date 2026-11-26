@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { PasswordFailure, Session as SessionCollection, User as UserCollection } from '../src/db.js';
+import { PasswordFailureCollection as PasswordFailure, SessionCollection } from '../src/modules/sessions/schema.js';
+import { UserCollection } from '../src/modules/users/schema.js';
 import { settings } from '../src/modules/settings/model.js';
 import { User } from '../src/modules/users/model.js';
 import { startDb, stopDb } from './helpers/db.js';

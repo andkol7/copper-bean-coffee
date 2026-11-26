@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { OtpCode, User as UserCollection } from '../src/db.js';
+import { OtpCodeCollection as OtpCode } from '../src/modules/otp/schema.js';
+import { UserCollection } from '../src/modules/users/schema.js';
 import { mailer } from '../src/lib/mailer.js';
 import { Otp } from '../src/modules/otp/model.js';
 import { User } from '../src/modules/users/model.js';

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ORDER_STATUSES } from '../../db.js';
+import { ORDER_STATUSES } from './schema.js';
 import { objectId } from '../../lib/validation.js';
 
 const note = z.string().trim().max(500);

@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { Session as SessionCollection, ShippingMethod as ShippingCollection, User as UserCollection } from '../src/db.js';
+import { SessionCollection } from '../src/modules/sessions/schema.js';
+import { ShippingMethodCollection as ShippingCollection } from '../src/modules/shipping/schema.js';
+import { UserCollection } from '../src/modules/users/schema.js';
 import { ShippingMethod } from '../src/modules/shipping/model.js';
 import { User } from '../src/modules/users/model.js';
 import { startDb, stopDb } from './helpers/db.js';

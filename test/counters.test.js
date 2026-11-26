@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Counter as CounterCollection } from '../src/db.js';
+import { CounterCollection } from '../src/modules/counters/schema.js';
 import { Counter } from '../src/modules/counters/model.js';
 import { startDb, stopDb } from './helpers/db.js';
 

@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import jwt from 'jsonwebtoken';
 import { config } from '../../config.js';
-import { PasswordFailure as PasswordFailureCollection, Session as SessionCollection } from '../../db.js';
+import { PasswordFailureCollection, SessionCollection } from './schema.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 import { tooManyRequests, unauthorized } from '../../lib/errors.js';
 import { Otp } from '../otp/model.js';

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CATEGORIES } from '../../db.js';
+import { CATEGORIES } from './schema.js';
 import { atLeastOneField } from '../../lib/validation.js';
 
 // What a manager may send. Money is in cents as a whole number: 1450 means $14.50.

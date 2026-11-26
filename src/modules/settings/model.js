@@ -1,4 +1,4 @@
-import { Setting as SettingCollection } from '../../db.js';
+import { SettingCollection } from './schema.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 
 // Shop settings: limits, email texts and messages. One object for the whole app.
@@ -79,6 +79,7 @@ const DEFAULTS = {
     addressLimit: 'You can keep up to {max} addresses, please delete one first',
     slugNeeded: 'The slug could not be made from the name, please send one (letters, digits, hyphens)',
     ownRole: 'You cannot change your own role',
+    deletedUserName: 'Deleted user',
     ownAccount: 'You cannot delete your own account here',
     wrongCurrentPassword: 'The current password is wrong',
   },

@@ -1,4 +1,4 @@
-import { Order as OrderCollection } from '../../db.js';
+import { OrderCollection } from './schema.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 import { badRequest, conflict, forbidden, unauthorized } from '../../lib/errors.js';
 import { Address } from '../addresses/model.js';

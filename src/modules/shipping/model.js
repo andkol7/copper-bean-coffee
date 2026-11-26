@@ -1,4 +1,4 @@
-import { ShippingMethod as ShippingMethodCollection } from '../../db.js';
+import { ShippingMethodCollection } from './schema.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 
 // A way to deliver an order, with its price. The order takes a copy of the chosen method's name

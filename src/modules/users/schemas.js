@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ROLES } from '../../db.js';
+import { ROLES } from './schema.js';
 import { atLeastOneField, email, newPassword, phone } from '../../lib/validation.js';
 
 // Each route gets exactly the fields its caller may set. Fields not listed are dropped,

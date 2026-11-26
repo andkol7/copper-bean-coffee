@@ -2,14 +2,12 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { expect } from 'chai';
 import mongoose from 'mongoose';
-import {
-  Address as AddressCollection,
-  Counter as CounterCollection,
-  Order as OrderCollection,
-  Product as ProductCollection,
-  ShippingMethod as ShippingCollection,
-  User as UserCollection,
-} from '../src/db.js';
+import { AddressCollection } from '../src/modules/addresses/schema.js';
+import { CounterCollection } from '../src/modules/counters/schema.js';
+import { OrderCollection } from '../src/modules/orders/schema.js';
+import { ProductCollection } from '../src/modules/products/schema.js';
+import { ShippingMethodCollection as ShippingCollection } from '../src/modules/shipping/schema.js';
+import { UserCollection } from '../src/modules/users/schema.js';
 import { jobs, runJob } from '../src/jobs/index.js';
 import { startScheduler } from '../src/jobs/scheduler.js';
 import { Address } from '../src/modules/addresses/model.js';

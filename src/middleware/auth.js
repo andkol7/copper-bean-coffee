@@ -1,4 +1,4 @@
-import { ROLES, STAFF_ROLES } from '../db.js';
+import { ROLES, STAFF_ROLES } from '../modules/users/schema.js';
 import { forbidden, unauthorized } from '../lib/errors.js';
 import { Session } from '../modules/sessions/model.js';
 import { settings } from '../modules/settings/model.js';
@@ -39,7 +39,7 @@ export const requireAuth = (level) => {
     // The role is not in the token, so it is read here on every request. A role change or a
     // deleted account takes effect at once, not when the 15-minute token runs out.
     const user = await User.findById(userId, { required: false });
-    if (!user) throw unauthorized(settings.message('sessionExpired'));
+    if (!user || user.deletedAt) throw unauthorized(settings.message('sessionExpired'));
     if (!allowed.includes(user.role)) throw forbidden(settings.message('forbidden'));
 
     req.user = user;

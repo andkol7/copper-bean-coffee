@@ -2,16 +2,14 @@ import { expect } from 'chai';
 import mongoose from 'mongoose';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import {
-  Address as AddressCollection,
-  Counter as CounterCollection,
-  Order as OrderCollection,
-  Product as ProductCollection,
-  Session as SessionCollection,
-  Setting,
-  ShippingMethod as ShippingCollection,
-  User as UserCollection,
-} from '../src/db.js';
+import { AddressCollection } from '../src/modules/addresses/schema.js';
+import { CounterCollection } from '../src/modules/counters/schema.js';
+import { OrderCollection } from '../src/modules/orders/schema.js';
+import { ProductCollection } from '../src/modules/products/schema.js';
+import { SessionCollection } from '../src/modules/sessions/schema.js';
+import { SettingCollection as Setting } from '../src/modules/settings/schema.js';
+import { ShippingMethodCollection as ShippingCollection } from '../src/modules/shipping/schema.js';
+import { UserCollection } from '../src/modules/users/schema.js';
 import { Address } from '../src/modules/addresses/model.js';
 import { Counter } from '../src/modules/counters/model.js';
 import { Order } from '../src/modules/orders/model.js';

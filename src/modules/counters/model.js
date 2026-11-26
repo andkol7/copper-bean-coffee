@@ -1,4 +1,4 @@
-import { Counter as CounterCollection } from '../../db.js';
+import { CounterCollection } from './schema.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 
 // Numbers that count up, for things people read out loud, like order CB-1042. MongoDB has no

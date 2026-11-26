@@ -17,7 +17,7 @@ import { meUpdate, staffCreate, userListQuery, userRegister, userUpdate } from '
 //
 // An entry: { method, path, rateLimit?, auth?, validate?, handler }
 //   method    - 'get' | 'post' | 'patch' | 'delete'
-//   path      - full URL path, e.g. '/api/v1/products/:slug'
+//   path      - full URL path, e.g. '/api/v1/products/:idOrSlug'
 //   rateLimit - per-IP request limit by name from settings.rateLimits ('login', 'otp', 'register', 'order')
 //   auth      - who may call it: 'user' (anyone logged in), 'staff' (manager, admin), 'admin',
 //               or 'optional' (a guest or anyone logged in; req.user is set only if a token came);
@@ -53,10 +53,10 @@ export const routes = [
 
   // ---------- Products ----------
   { method: 'get', path: '/api/v1/products', auth: 'optional', validate: { query: productListQuery }, handler: products.list },
-  { method: 'get', path: '/api/v1/products/:slug', auth: 'optional', handler: products.get },
+  { method: 'get', path: '/api/v1/products/:idOrSlug', auth: 'optional', handler: products.get },
   { method: 'post', path: '/api/v1/products', auth: 'staff', validate: { body: productCreate }, handler: products.create },
-  { method: 'patch', path: '/api/v1/products/:id', auth: 'staff', validate: { body: productUpdate }, handler: products.update },
-  { method: 'delete', path: '/api/v1/products/:id', auth: 'staff', handler: products.remove },
+  { method: 'patch', path: '/api/v1/products/:idOrSlug', auth: 'staff', validate: { body: productUpdate }, handler: products.update },
+  { method: 'delete', path: '/api/v1/products/:idOrSlug', auth: 'staff', handler: products.remove },
 
   // ---------- Addresses (each user's own) ----------
   { method: 'get', path: '/api/v1/addresses', auth: 'user', handler: addresses.list },

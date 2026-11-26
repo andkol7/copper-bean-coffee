@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { User as UserCollection } from '../src/db.js';
+import { UserCollection } from '../src/modules/users/schema.js';
 import { User } from '../src/modules/users/model.js';
 import { startDb, stopDb } from './helpers/db.js';
 

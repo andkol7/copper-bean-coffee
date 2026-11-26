@@ -1,5 +1,5 @@
 import { randomInt } from 'node:crypto';
-import { OtpCode } from '../../db.js';
+import { OtpCodeCollection } from './schema.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 import { tooManyRequests } from '../../lib/errors.js';
 import { mailer } from '../../lib/mailer.js';
@@ -11,7 +11,7 @@ import { normalizeEmail, User } from '../users/model.js';
 //   await new Otp({ email }).create();       // POST /api/v1/auth/otp, via BaseController.create
 //   const ok = await Otp.verify(email, code);
 export class Otp extends BaseModel {
-  static schema = OtpCode;
+  static schema = OtpCodeCollection;
   static required = ['email'];
 
   // The plain code and its owner live only in memory, between issue() and send();

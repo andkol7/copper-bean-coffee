@@ -1,4 +1,4 @@
-import { Product as ProductCollection } from '../../db.js';
+import { ProductCollection } from './schema.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 import { badRequest } from '../../lib/errors.js';
 import { settings } from '../settings/model.js';
@@ -65,6 +65,18 @@ export class Product extends BaseModel {
     if (q) filter.$text = { $search: q };
 
     return filter;
+  }
+
+  // One product by its id or its slug. Visitors and customers get a 404 for a hidden product, as
+  // if it did not exist; staff can open it. 24 hex characters are tried as an id first, then as a
+  // slug, so even a slug that happens to look like an id still works.
+  static async findByIdOrSlug(idOrSlug, actor) {
+    const visible = actor?.isStaff ? {} : { active: true };
+    if (/^[a-f\d]{24}$/i.test(idOrSlug)) {
+      const byId = await this.findOne({ _id: idOrSlug, ...visible }, { required: false });
+      if (byId) return byId;
+    }
+    return this.findOne({ slug: idOrSlug.toLowerCase(), ...visible });
   }
 
   // With a search text the best match comes first, unless another order was asked for.

@@ -1,7 +1,10 @@
 import { expect } from 'chai';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { Address as AddressCollection, Session as SessionCollection, Setting, User as UserCollection } from '../src/db.js';
+import { AddressCollection } from '../src/modules/addresses/schema.js';
+import { SessionCollection } from '../src/modules/sessions/schema.js';
+import { SettingCollection as Setting } from '../src/modules/settings/schema.js';
+import { UserCollection } from '../src/modules/users/schema.js';
 import { Address } from '../src/modules/addresses/model.js';
 import { settings } from '../src/modules/settings/model.js';
 import { User } from '../src/modules/users/model.js';

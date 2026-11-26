@@ -1,4 +1,4 @@
-import { Address as AddressCollection } from '../../db.js';
+import { AddressCollection } from './schema.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 import { conflict, unauthorized } from '../../lib/errors.js';
 import { settings } from '../settings/model.js';

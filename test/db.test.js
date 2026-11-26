@@ -1,5 +1,6 @@
 import { expect } from 'chai';
-import { Product, User } from '../src/db.js';
+import { ProductCollection as Product } from '../src/modules/products/schema.js';
+import { UserCollection as User } from '../src/modules/users/schema.js';
 import { startDb, stopDb } from './helpers/db.js';
 
 const validProduct = () => ({

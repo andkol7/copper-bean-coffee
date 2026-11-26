@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { Product as ProductCollection, Session as SessionCollection, User as UserCollection } from '../src/db.js';
+import { ProductCollection } from '../src/modules/products/schema.js';
+import { SessionCollection } from '../src/modules/sessions/schema.js';
+import { UserCollection } from '../src/modules/users/schema.js';
 import { Product, slugify } from '../src/modules/products/model.js';
 import { settings } from '../src/modules/settings/model.js';
 import { User } from '../src/modules/users/model.js';
@@ -131,6 +133,27 @@ describe('products', () => {
       expect((await api('get', '/api/v1/products/kenya-aa', t.manager)).body.active).to.equal(false);
     });
 
+    it('works with the id as well as the slug, for reading and for changing', async () => {
+      const { id } = (await api('get', '/api/v1/products/earl-grey')).body;
+      expect((await api('get', `/api/v1/products/${id}`)).body.slug).to.equal('earl-grey');
+
+      expect((await api('patch', '/api/v1/products/earl-grey', t.manager).send({ stock: 7 })).body.stock).to.equal(7);
+      expect((await api('delete', '/api/v1/products/earl-grey', t.manager)).status).to.equal(204);
+      expect((await api('get', `/api/v1/products/${id}`)).status).to.equal(404); // hidden now
+    });
+
+    it('a hidden product is a 404 for a customer by id too, and opens for staff', async () => {
+      const id = (await ProductCollection.findOne({ slug: 'kenya-aa' }))._id.toString();
+      expect((await api('get', `/api/v1/products/${id}`)).status).to.equal(404);
+      expect((await api('get', `/api/v1/products/${id}`, t.ann)).status).to.equal(404);
+      expect((await api('get', `/api/v1/products/${id}`, t.manager)).body.slug).to.equal('kenya-aa');
+    });
+
+    it('a slug that looks like an id still finds its product', async () => {
+      await new Product({ name: 'Odd', slug: 'aaaaaaaaaaaaaaaaaaaaaaaa', category: 'tea', priceCents: 100 }).create();
+      expect((await api('get', '/api/v1/products/aaaaaaaaaaaaaaaaaaaaaaaa')).body.name).to.equal('Odd');
+    });
+
     it('does not care about letter case in the URL', async () => {
       expect((await api('get', '/api/v1/products/Earl-Grey')).status).to.equal(200);
     });
@@ -208,11 +231,11 @@ describe('products', () => {
       expect((await api('get', '/api/v1/products/earl-grey')).body.priceCents).to.equal(950);
     });
 
-    it('400 for an empty body or bad values; 404 for an unknown id; 400 for a malformed id', async () => {
+    it('400 for an empty body or bad values; 404 for an unknown id or slug', async () => {
       expect((await patch({})).status).to.equal(400);
       expect((await patch({ priceCents: 9.99 })).status).to.equal(400);
       expect((await patch({ priceCents: 100 }, t.manager, '/api/v1/products/507f1f77bcf86cd799439011')).status).to.equal(404);
-      expect((await patch({ priceCents: 100 }, t.manager, '/api/v1/products/not-an-id')).status).to.equal(400);
+      expect((await patch({ priceCents: 100 }, t.manager, '/api/v1/products/no-such-product')).status).to.equal(404);
     });
 
     it('only staff may', async () => {
