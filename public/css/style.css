@@ -121,3 +121,27 @@ h1 .badge { font-size: 0.85rem; vertical-align: middle; }
   .table { font-size: 0.9rem; }
   .table th, .table td { padding: 8px; }
 }
+
+/* Staff pages */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 8px; }
+.stat { display: flex; flex-direction: column; gap: 4px; margin-top: 0; }
+.stat strong { font-size: 1.2rem; }
+.templates { display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; }
+.template-list { display: flex; flex-direction: column; gap: 8px; }
+.template-link {
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 8px; text-decoration: none; color: inherit;
+}
+.template-link.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.variables { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { padding: 3px 9px; border-radius: 999px; background: #efe6db; color: var(--accent-dark); font-weight: 500; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+.chip:hover:not(:disabled) { background: #e3d5c3; }
+label.inline { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+label.inline input { width: auto; margin: 0; }
+textarea { font-family: ui-monospace, Consolas, monospace; font-size: 0.9rem; }
+.preview { background: #fff; border: 1px dashed var(--line); border-radius: 8px; padding: 12px 16px; }
+.preview pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
+@media (max-width: 720px) {
+  .stats, .templates { grid-template-columns: 1fr 1fr; }
+  .templates { grid-template-columns: 1fr; }
+}

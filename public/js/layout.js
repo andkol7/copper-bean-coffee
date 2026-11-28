@@ -18,6 +18,9 @@ export function drawHeader() {
           { class: 'nav-links' },
           h('a', { href: '/' }, 'Shop'),
           h('a', { href: '/cart' }, `Cart (${cart.count()})`),
+          // Work pages, only for staff; the server checks the role again on every request.
+          session.isStaff && [h('a', { href: '/staff/orders' }, 'Orders'), h('a', { href: '/staff/customers' }, 'Customers')],
+          session.user?.role === 'admin' && h('a', { href: '/staff/emails' }, 'Emails'),
           user
             ? [
                 h('a', { href: '/account' }, user.name, session.isStaff ? ` (${user.role})` : ''),
@@ -37,6 +40,15 @@ export function drawHeader() {
 export function requireLogin() {
   if (session.get()) return true;
   location.href = `/login?next=${encodeURIComponent(location.pathname + location.search)}`;
+  return false;
+}
+
+// For staff pages: a guest goes to log in; a customer (or a manager on an admin page) is told the
+// page is not for them. Only the look: the API refuses the data with 403 either way.
+export function requireRole(app, roles = ['manager', 'admin']) {
+  if (!requireLogin()) return false;
+  if (roles.includes(session.user?.role)) return true;
+  render(app, h('h1', {}, 'Not for you'), h('p', {}, "This page is for the shop's staff. ",h('a', { href: '/' }, 'Back to the shop')));
   return false;
 }
 

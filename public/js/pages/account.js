@@ -11,8 +11,10 @@ page('My account', async (app) => {
   render(
     app,
     h('h1', {}, `Hello, ${me.name}`),
-    session.isStaff && notice(`You are logged in as ${me.role}: the order list below shows all customers' orders.`),
-    h('section', { id: 'orders' }, h('h2', {}, session.isStaff ? 'All orders' : 'My orders'), await ordersTable()),
+    // Staff work with all orders on their own pages; the account keeps the personal parts.
+    session.isStaff
+      ? notice(h('span', {}, `You are logged in as ${me.role}. Work pages: `, h('a', { href: '/staff/orders' }, 'orders'), ', ', h('a', { href: '/staff/customers' }, 'customers'), me.role === 'admin' ? [', ', h('a', { href: '/staff/emails' }, 'emails')] : '', '.'))
+      : h('section', { id: 'orders' }, h('h2', {}, 'My orders'), await ordersTable()),
     h('section', { id: 'addresses' }, h('h2', {}, 'Delivery addresses'), await addressesBlock(me)),
     h('section', { id: 'profile', class: 'two-columns' }, profileForm(me), passwordForm()),
   );

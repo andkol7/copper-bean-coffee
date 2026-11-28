@@ -9,7 +9,7 @@ import { createApp } from '../src/app.js';
 // what can be checked without a browser: the pages are served, the scripts exist and parse, nothing
 // breaks the Content-Security-Policy, and the redirect after login cannot leave the site.
 const app = createApp();
-const PAGES = ['/', '/product', '/cart', '/login', '/account', '/order'];
+const PAGES = ['/', '/product', '/cart', '/login', '/account', '/order', '/staff/orders', '/staff/customers', '/staff/customer', '/staff/emails'];
 
 const walk = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)]));
 const scripts = walk('public/js').filter((f) => f.endsWith('.js'));

@@ -76,8 +76,9 @@ try {
   const page = await browser.newPage();
   await page.setViewport({ width: 1200, height: 900 });
   page.on('pageerror', (err) => browserErrors.push(`page error: ${err.message}`));
-  // A 401 in the console is expected once: the check types a wrong password on purpose.
-  page.on('console', (msg) => msg.type() === 'error' && !msg.text().includes('status of 401') && browserErrors.push(`console: ${msg.text()}`));
+  // Two refusals are made on purpose and the browser logs them: a wrong password (401) and an email
+  // template with a typo in a placeholder (400). Anything else in the console is a real problem.
+  page.on('console', (msg) => msg.type() === 'error' && !/status of 40[01]/.test(msg.text()) && browserErrors.push(`console: ${msg.text()}`));
   page.on('dialog', (dialog) => dialog.accept()); // "Cancel this order?" -> OK
 
   const text = () => page.$eval('main', (m) => m.innerText);
@@ -211,9 +212,65 @@ try {
   await waitText('Completed');
   const history = await page.$eval('.history', (e) => e.innerText);
   check('paid -> shipped -> completed, with the note in the history', history.includes('Paid') && history.includes('Bank transfer') && history.includes('Completed') && !(await text()).includes('Mark as'));
+  // ---------- Staff pages ----------
+  section('Staff pages');
+  const adminHeader = await header();
+  check('the admin header has Orders, Customers and Emails', ['Orders', 'Customers', 'Emails'].every((link) => adminHeader.includes(link)));
   await go('/account');
-  await waitText('All orders');
-  check('staff see "All orders"', true);
+  await waitText('Work pages');
+  check('the account points staff to their work pages', (await text()).includes('Work pages'));
+
+  await go('/staff/orders');
+  await waitText('2 orders');
+  check('Orders lists every order', (await text()).includes('CB-1001') && (await text()).includes('CB-1002'));
+  await page.select('select[name=status]', 'cancelled');
+  await waitText('1 order');
+  check('the status filter keeps the cancelled one and goes into the URL', (await text()).includes('CB-1002') && !(await text()).includes('CB-1001') && page.url().includes('status=cancelled'));
+  await go('/staff/orders?number=cb-1001');
+  await waitText('1 order');
+  check('search by number (any letter case)', (await text()).includes('CB-1001'));
+
+  await go('/staff/customers?sort=spent');
+  await waitText('customer');
+  const customersText = await text();
+  check('Customers shows the demo customer with 2 orders and $68.00 spent', customersText.includes('Demo Customer') && customersText.includes('$68.00'));
+  await Promise.all([page.waitForNavigation({ waitUntil: 'networkidle0' }), page.click('table a')]);
+  await waitText('Recent orders');
+  const card = await text();
+  check("a customer's card: stats, contact, addresses, recent orders", card.includes('Spent') && card.includes('demo@copperbean.test') && card.includes('Kyiv') && card.includes('CB-1001'));
+
+  await go('/staff/emails');
+  await waitText('order.paid');
+  const templateList = await page.$eval('.template-list', (e) => e.innerText);
+  check('Emails lists the shop templates', ['otp.code', 'order.created', 'order.paid', 'order.shipped', 'order.cancelled'].every((key) => templateList.includes(key)));
+  await page.evaluate(() => [...document.querySelectorAll('.template-link')].find((a) => a.textContent.includes('order.paid')).click());
+  await page.waitForSelector('textarea[name=text]');
+  check('the preview shows example values', (await page.$eval('.preview', (e) => e.innerText)).includes('CB-1042'));
+  await page.$eval('input[name=subject]', (e) => {
+    e.value = 'Paid: {number} ({totl})';
+    e.dispatchEvent(new Event('input'));
+  });
+  await page.click('form.panel button[type=submit]');
+  await page.waitForSelector('.alert.error');
+  check('a typo in a placeholder is refused with the allowed list', (await text()).includes('{totl}') && (await text()).includes('{total}'));
+  await page.$eval('input[name=subject]', (e) => {
+    e.value = 'Thanks! Order {number} is paid';
+    e.dispatchEvent(new Event('input'));
+  });
+  await page.click('form.panel button[type=submit]');
+  await waitText('Saved.');
+  check('a fixed subject saves', true);
+
+  await page.click('.template-list button.link'); // + New template
+  await page.type('input[name=key]', 'newsletter.welcome');
+  await page.type('input[name=subject]', 'Welcome, {name}');
+  await page.type('textarea[name=text]', 'Hello {name}!');
+  await page.click('form.panel button[type=submit]');
+  await waitText('nothing in the shop sends it yet');
+  check('a custom template is created and opened', page.url().includes('key=newsletter.welcome'));
+  await page.click('.button-row button.danger');
+  await waitText('Deleted.');
+  check('a custom template can be deleted', !(await page.$eval('.template-list', (e) => e.innerText)).includes('newsletter.welcome'));
 
   // ---------- Email code and register ----------
   section('Email code and registration');
@@ -230,6 +287,10 @@ try {
   await submitAndNavigate('form .stack button[type=submit]');
   await waitText('Hello, Demo Customer');
   check('logging in with the code works', true);
+  check('a customer has no staff links', !(await header()).includes('Customers'));
+  await go('/staff/orders');
+  await waitText('Not for you');
+  check('a customer opening a staff page is told it is not for them', true);
 
   await page.click('#site-header button.link');
   await page.waitForNavigation({ waitUntil: 'networkidle0' }).catch(() => {});

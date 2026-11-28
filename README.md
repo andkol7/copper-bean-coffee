@@ -20,7 +20,8 @@ an architecture diagram comes with the release.
 - **CRM:** customers with order statistics (one MongoDB aggregation), user management, safe user deletion
   (personal data wiped when the account has orders).
 - **Website:** shop, product pages, cart and checkout, login (password, email code, registration), my account
-  with addresses and orders, and order pages where staff move orders along. Plain HTML and browser
+  with addresses and orders, and order pages where staff move orders along. Staff pages: all orders with
+  filters, customers with their stats and a customer card, and (admin) the email templates with a live preview. Plain HTML and browser
   JavaScript calling the same API, no framework and no build step.
 - **API docs:** Swagger UI at `/docs`, generated from the route list, so the docs match the code.
 - **Tests:** about 270 tests on a real in-memory MongoDB, including parallel-request races.

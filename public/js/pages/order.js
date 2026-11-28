@@ -29,7 +29,7 @@ page('Order', async (app) => {
 
     render(
       app,
-      h('p', {}, h('a', { href: '/account' }, session.isStaff ? '← All orders' : '← My orders')),
+      h('p', {}, session.isStaff ? h('a', { href: '/staff/orders' }, '← All orders') : h('a', { href: '/account' }, '← My orders')),
       query('placed') && notice(`Thank you! Order ${order.number} is placed. Unpaid orders are cancelled after an hour.`, 'success'),
       h('h1', {}, `Order ${order.number} `, statusBadge(order.status)),
       h('p', { class: 'muted' }, `Placed ${date(order.createdAt)}`),
