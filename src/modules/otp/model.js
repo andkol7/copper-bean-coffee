@@ -2,12 +2,12 @@ import { randomInt } from 'node:crypto';
 import { OtpCodeCollection } from './schema.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 import { tooManyRequests } from '../../lib/errors.js';
-import { mailer } from '../../lib/mailer.js';
 import { hashPassword, verifyPassword } from '../../lib/password.js';
+import { EmailTemplate } from '../email-templates/model.js';
 import { settings } from '../settings/model.js';
 import { normalizeEmail, User } from '../users/model.js';
 
-// A one-time login code. Limits and texts come from settings (settings.otp, emails.otpCode).
+// A one-time login code. Limits come from settings.otp, the email from the template otp.code.
 //   await new Otp({ email }).create();       // POST /api/v1/auth/otp, via BaseController.create
 //   const ok = await Otp.verify(email, code);
 export class Otp extends BaseModel {
@@ -64,12 +64,10 @@ export class Otp extends BaseModel {
 
   // Delivers the code. Email for now; Telegram joins in phase 4.
   async send() {
-    const { subject, text } = settings.email('otpCode', {
-      name: this.#user.name,
-      code: this.#code,
-      ttlMinutes: settings.otp.ttlMinutes,
+    await EmailTemplate.send('otp.code', {
+      to: this.email,
+      vars: { name: this.#user.name, code: this.#code, ttlMinutes: settings.otp.ttlMinutes },
     });
-    await mailer.send({ to: this.email, subject, text });
   }
 
   // true only for the right, unexpired, unused code with attempts left. The code is single-use.

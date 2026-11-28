@@ -31,7 +31,11 @@ if (!BROWSER) {
   process.exit(1);
 }
 
-const env = { ...process.env, MONGODB_URI: URI, NODE_ENV: 'development', PORT: String(PORT), RUN_JOBS: 'false', SEED_ADMIN_EMAIL: ADMIN.email, SEED_ADMIN_PASSWORD: ADMIN.password, JWT_SECRET: 'ui-check-secret-'.padEnd(40, 'x') };
+const env = { ...process.env, MONGODB_URI: URI, NODE_ENV: 'development', PORT: String(PORT), RUN_JOBS: 'false',
+  // Never send real email from a check: the addresses are made up, and the check reads the login
+  // codes from the server's terminal. An empty key means "not set" (config.js).
+  RESEND_API_KEY: '',
+  MAIL_FROM: '', SEED_ADMIN_EMAIL: ADMIN.email, SEED_ADMIN_PASSWORD: ADMIN.password, JWT_SECRET: 'ui-check-secret-'.padEnd(40, 'x') };
 
 let passed = 0;
 let failed = 0;

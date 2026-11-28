@@ -1,11 +1,15 @@
 import { OrderCollection } from './schema.js';
+import { config } from '../../config.js';
 import { BaseModel } from '../../lib/BaseModel.js';
 import { badRequest, conflict, forbidden, unauthorized } from '../../lib/errors.js';
+import { formatMoney } from '../../lib/template.js';
 import { Address } from '../addresses/model.js';
 import { Counter } from '../counters/model.js';
+import { EmailTemplate } from '../email-templates/model.js';
 import { Product } from '../products/model.js';
 import { settings } from '../settings/model.js';
 import { ShippingMethod } from '../shipping/model.js';
+import { User } from '../users/model.js';
 
 // The state machine: from which status to which, and which roles may do it.
 //   pending_payment -> paid       an admin, by hand, until Stripe does it (phase 2)
@@ -76,6 +80,7 @@ export class Order extends BaseModel {
       await Order.#releaseStock(lines);
       throw err;
     }
+    await this.#notify('order.created', { customer: actor, payWithinMinutes: settings.orders.unpaidExpireMinutes });
     return this;
   }
 
@@ -139,6 +144,43 @@ export class Order extends BaseModel {
     if (!changed) throw conflict(settings.message('statusChanged'));
 
     if (to === 'cancelled') await Order.#releaseStock(this.items);
+
+    // Tell the customer. For a cancel, say why: the note given, else who did it.
+    const EMAILS = { paid: 'order.paid', shipped: 'order.shipped', cancelled: 'order.cancelled' };
+    if (EMAILS[to]) {
+      const byCustomer = actor && String(actor.id) === String(this.customer);
+      const reason = note || settings.message(byCustomer ? 'cancelledByCustomer' : 'cancelledByShop');
+      await this.#notify(EMAILS[to], { reason });
+    }
+  }
+
+  // ---------- Emails to the customer ----------
+
+  // Sends one of the order emails (templates in modules/email-templates). An email that cannot be
+  // sent never undoes or breaks the order: the order is the real thing, the email only reports on it.
+  async #notify(key, { customer, ...extra } = {}) {
+    try {
+      const to = customer ?? (await User.findById(this.customer, { required: false }));
+      if (!to || to.deletedAt) return; // a wiped account has no address to write to
+      await EmailTemplate.send(key, { to: to.email, vars: { name: to.name, ...this.#emailVars(), ...extra } });
+    } catch (err) {
+      console.error(`Email ${key} for order ${this.number} was not sent: ${err.message}`);
+    }
+  }
+
+  // What the order emails can say (the list an admin sees is in SYSTEM_TEMPLATES).
+  #emailVars() {
+    const a = this.shippingAddress;
+    return {
+      number: this.number,
+      items: this.items.map((item) => `${item.quantity} × ${item.name}  ${formatMoney(item.unitPriceCents * item.quantity)}`).join('\n'),
+      subtotal: formatMoney(this.subtotalCents),
+      shippingName: this.shipping.name,
+      shippingPrice: this.shipping.priceCents ? formatMoney(this.shipping.priceCents) : 'free',
+      total: formatMoney(this.totalCents),
+      address: [a.name, a.line1, a.line2, `${a.postalCode} ${a.city}, ${a.country}`, a.phone].filter(Boolean).join('\n'),
+      orderUrl: `${config.APP_URL}/order?id=${this.id}`,
+    };
   }
 
   // Cancels the orders that were not paid in time and returns their stock. Called by the timer

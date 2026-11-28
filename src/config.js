@@ -17,6 +17,8 @@ const schema = z.object({
   // Run the periodic jobs (src/jobs) inside the server process. Right for one small instance,
   // like the demo on Render. Set false when something else runs `npm run job` on a schedule.
   RUN_JOBS: z.stringbool().default(true),
+  // Where the website is, for links in emails ("see your order"). On Render: the demo's address.
+  APP_URL: z.url().default('http://localhost:3000').transform((url) => url.replace(/\/+$/, '')),
   // Email through Resend (resend.com). Without a key: printed in the terminal in development,
   // refused in production. MAIL_FROM must be on a domain verified in Resend.
   RESEND_API_KEY: z.string().startsWith('re_', 'RESEND_API_KEY starts with re_').optional(),

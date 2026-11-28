@@ -1,7 +1,9 @@
 import { SettingCollection } from './schema.js';
 import { BaseModel } from '../../lib/BaseModel.js';
+import { render } from '../../lib/template.js';
 
-// Shop settings: limits, email texts and messages. One object for the whole app.
+// Shop settings: limits and short messages. One object for the whole app.
+// Email texts are not here: they are records of their own (modules/email-templates).
 //
 // Not the same as src/config.js: config is about the environment (database URL, secrets) and
 // comes from .env; settings are about how the shop behaves and are stored in the database,
@@ -12,7 +14,7 @@ import { BaseModel } from '../../lib/BaseModel.js';
 //
 //   import { settings } from '../settings/model.js';
 //   settings.otp.maxAttempts
-//   settings.email('otpCode', { name, code, ttlMinutes })   // → { subject, text }
+//   settings.message('otpCooldown', { seconds: 42 })
 
 const DEFAULTS = {
   otp: {
@@ -58,14 +60,6 @@ const DEFAULTS = {
   addresses: {
     maxPerUser: 10,
   },
-  emails: {
-    otpCode: {
-      subject: 'Your Copper Bean login code: {code}',
-      text:
-        'Hi {name},\n\nYour login code is {code}. It works once and expires in {ttlMinutes} minutes.\n\n' +
-        'If you did not ask for it, just ignore this email.',
-    },
-  },
   messages: {
     // The same answer whether the email is registered or not, so it cannot be used
     // to find out who has an account.
@@ -86,6 +80,11 @@ const DEFAULTS = {
     statusChanged: 'The order was changed by somebody else, please reload it',
     orderExpired: 'Payment time ran out',
     addressLimit: 'You can keep up to {max} addresses, please delete one first',
+    templateInUse: 'The shop sends this email: change it or switch it off, but it cannot be deleted',
+    templateMustStayActive: 'Logging in with an email code needs this email: it cannot be switched off',
+    templateUnknownPlaceholders: 'Unknown placeholders: {unknown}. This email can use: {allowed}',
+    cancelledByCustomer: 'you cancelled it',
+    cancelledByShop: 'the shop cancelled it',
     slugNeeded: 'The slug could not be made from the name, please send one (letters, digits, hyphens)',
     ownRole: 'You cannot change your own role',
     deletedUserName: 'Deleted user',
@@ -141,14 +140,7 @@ class Settings {
     return this;
   }
 
-  // Fills {placeholders} in an email template: settings.email('otpCode', { name, code }).
-  email(name, vars) {
-    const template = this.emails[name];
-    if (!template) throw new Error(`No email template "${name}" in settings`);
-    return { subject: render(template.subject, vars), text: render(template.text, vars) };
-  }
-
-  // Same for a short message: settings.message('otpCooldown', { seconds: 42 }).
+  // A short message with its {placeholders} filled in: settings.message('otpCooldown', { seconds: 42 }).
   message(name, vars = {}) {
     const template = this.messages[name];
     if (template === undefined) throw new Error(`No message "${name}" in settings`);
@@ -175,11 +167,5 @@ function merge(base, extra) {
 }
 
 const isPlainObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
-
-// 'Hi {name}' + { name: 'Ann' } → 'Hi Ann'. Unknown placeholders stay as they are, so a typo
-// in an admin-edited template is visible instead of silently becoming empty.
-function render(template, vars = {}) {
-  return template.replace(/\{(\w+)\}/g, (match, key) => (key in vars ? String(vars[key]) : match));
-}
 
 export const settings = Settings.getInstance();

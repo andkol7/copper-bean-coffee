@@ -53,10 +53,15 @@ Open **http://localhost:3000** for the shop, or **http://localhost:3000/docs** t
 | `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` | The admin account `npm run seed` creates |
 | `ACCESS_TOKEN_TTL`, `REFRESH_TOKEN_DAYS` | Token lifetimes (15 minutes and 7 days by default) |
 | `RESEND_API_KEY`, `MAIL_FROM` | Email through [Resend](https://resend.com); without a key, emails are printed in the terminal |
+| `APP_URL` | Where the website is, for links in emails (`http://localhost:3000` locally) |
 | `RUN_JOBS` | `true`: the server runs the periodic jobs itself; `false` when cron runs `npm run job` |
 | `PORT`, `NODE_ENV` | The usual |
 
 Without `RESEND_API_KEY` login codes are not emailed: the server prints each email in its terminal.
+
+Customers get an email when an order is placed, paid, shipped or cancelled, and for login codes. The
+texts are records in the database (`emailtemplates`), edited by an admin at `/api/v1/email-templates`; the
+shop's own templates are created on the first start and can be changed or switched off, not deleted.
 
 Every API request is written to the `requestlogs` collection (method, path, status, time, user, and the
 error for failed ones; never request bodies), kept for 14 days. An admin reads it at `GET /api/v1/request-logs`

@@ -20,10 +20,7 @@ describe('settings', () => {
     expect(settings.otp).to.deep.equal({ ttlMinutes: 10, maxAttempts: 5, resendCooldownSeconds: 60 });
   });
 
-  it('fills placeholders in email templates and messages', () => {
-    const { subject, text } = settings.email('otpCode', { name: 'Ann', code: '123456', ttlMinutes: 10 });
-    expect(subject).to.equal('Your Copper Bean login code: 123456');
-    expect(text).to.include('Hi Ann,').and.include('expires in 10 minutes');
+  it('fills placeholders in messages', () => {
     expect(settings.message('otpCooldown', { seconds: 42 })).to.equal('Wait 42 s before asking for a new code');
   });
 
@@ -41,10 +38,10 @@ describe('settings', () => {
   });
 
   it('load lays the database values over the defaults', async () => {
-    await Setting.updateOne({ key: 'main' }, { values: { emails: { otpCode: { subject: 'Code: {code}' } } } }, { upsert: true });
+    await Setting.updateOne({ key: 'main' }, { values: { otp: { maxAttempts: 3 } } }, { upsert: true });
     await settings.load();
-    expect(settings.email('otpCode', { code: '000111' }).subject).to.equal('Code: 000111');
-    expect(settings.emails.otpCode.text).to.include('Your login code is {code}'); // default kept
+    expect(settings.otp.maxAttempts).to.equal(3);
+    expect(settings.otp.ttlMinutes).to.equal(10); // default kept
   });
 
   it('a stray key in the database cannot replace a method', async () => {

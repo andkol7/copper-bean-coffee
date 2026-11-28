@@ -4,6 +4,8 @@ import { customers } from './modules/customers/controller.js';
 import { customerListQuery } from './modules/customers/schemas.js';
 import { orders } from './modules/orders/controller.js';
 import { orderCreate, orderListQuery, orderStatusChange } from './modules/orders/schemas.js';
+import { emailTemplates } from './modules/email-templates/controller.js';
+import { emailTemplateCreate, emailTemplateUpdate } from './modules/email-templates/schemas.js';
 import { otp } from './modules/otp/controller.js';
 import { otpRequest } from './modules/otp/schemas.js';
 import { products } from './modules/products/controller.js';
@@ -87,4 +89,11 @@ export const routes = [
 
   // ---------- Request log (admin) ----------
   { method: 'get', path: '/api/v1/request-logs', auth: 'admin', validate: { query: requestLogListQuery }, handler: requestLogs.list },
+
+  // ---------- Email templates (admin) ----------
+  { method: 'get', path: '/api/v1/email-templates', auth: 'admin', handler: emailTemplates.list },
+  { method: 'post', path: '/api/v1/email-templates', auth: 'admin', validate: { body: emailTemplateCreate }, handler: emailTemplates.create },
+  { method: 'get', path: '/api/v1/email-templates/:key', auth: 'admin', handler: emailTemplates.get },
+  { method: 'patch', path: '/api/v1/email-templates/:key', auth: 'admin', validate: { body: emailTemplateUpdate }, handler: emailTemplates.update },
+  { method: 'delete', path: '/api/v1/email-templates/:key', auth: 'admin', handler: emailTemplates.remove },
 ];

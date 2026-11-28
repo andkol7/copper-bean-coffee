@@ -2,6 +2,7 @@ import { config } from './config.js';
 import { connectDb, disconnectDb } from './db.js';
 import { createApp } from './app.js';
 import { startScheduler } from './jobs/scheduler.js';
+import { EmailTemplate } from './modules/email-templates/model.js';
 import { settings } from './modules/settings/model.js';
 
 async function main() {
@@ -11,6 +12,10 @@ async function main() {
 
   // Shop settings changed by an admin, laid over the defaults in modules/settings/model.js.
   await settings.load();
+
+  // The emails the shop sends: any that are not in the database yet are created from the starting
+  // texts in modules/email-templates; existing ones (maybe edited by an admin) are left alone.
+  await EmailTemplate.ensureDefaults();
 
   const app = createApp();
   const server = app.listen(config.PORT, () => {

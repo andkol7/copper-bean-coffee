@@ -21,6 +21,10 @@ const env = {
   NODE_ENV: 'development',
   PORT: String(PORT),
   RUN_JOBS: 'false',
+  // Never send real email from a check: the addresses are made up, and the check reads the login
+  // codes from the server's terminal. An empty key means "not set" (config.js).
+  RESEND_API_KEY: '',
+  MAIL_FROM: '',
   SEED_ADMIN_EMAIL: ADMIN.email,
   SEED_ADMIN_PASSWORD: ADMIN.password,
 };
@@ -93,7 +97,7 @@ try {
   section('System');
   await expectStatus('server is up', 200, 'GET', '/health');
   const spec = await expectStatus('API description', 200, 'GET', '/docs/openapi.json');
-  check('the description lists every route', Object.values(spec.body.paths).reduce((n, m) => n + Object.keys(m).length, 0) === 33);
+  check('the description lists every route', Object.values(spec.body.paths).reduce((n, m) => n + Object.keys(m).length, 0) === 38);
   const nope = await expectStatus('unknown route, JSON error', 404, 'GET', '/api/v1/nothing');
   check('error shape { error: { code, message } }', nope.body?.error?.code === 'not_found');
 

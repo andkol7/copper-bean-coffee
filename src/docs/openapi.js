@@ -54,6 +54,12 @@ export const SUMMARIES = {
   'GET /api/v1/customers': 'Customers with order stats (staff)',
   'GET /api/v1/customers/:id': "A customer's card: stats, recent orders, addresses (staff)",
 
+  'GET /api/v1/email-templates': 'All email templates, with the variables each may use (admin)',
+  'POST /api/v1/email-templates': 'Add an email template of your own (admin)',
+  'GET /api/v1/email-templates/:key': 'One email template, e.g. order.paid (admin)',
+  'PATCH /api/v1/email-templates/:key': "Change a template's subject, text or switch it off (admin)",
+  'DELETE /api/v1/email-templates/:key': "Delete a template of your own; the shop's own cannot be deleted (admin)",
+
   'GET /api/v1/request-logs': 'The request log: every API request with status, time and errors (admin)',
 };
 
@@ -153,6 +159,7 @@ export function buildOpenApi(list = appRoutes) {
       { name: 'addresses', description: "Each user's saved delivery addresses" },
       { name: 'orders', description: 'Placing and handling orders' },
       { name: 'customers', description: 'The CRM view of customers' },
+      { name: 'email-templates', description: 'The texts of the emails the shop sends' },
       { name: 'request-logs', description: 'What happened: every API request, kept two weeks' },
       { name: 'system', description: 'Service checks' },
     ],
