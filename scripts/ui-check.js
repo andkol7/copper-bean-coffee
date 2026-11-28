@@ -124,7 +124,8 @@ try {
   // ---------- Address ----------
   section('Address');
   await page.type('form.grid-form input[name=label]', 'Home');
-  await page.type('form.grid-form input[name=name]', 'Demo Customer');
+  // the recipient's name comes from the profile already
+  check('the recipient name starts from the profile', (await page.$eval('form.grid-form input[name=name]', (e) => e.value)) === 'Demo Customer');
   await page.type('form.grid-form input[name=phone]', '+380 67 123 45 67');
   await page.type('form.grid-form input[name=line1]', '1 Khreshchatyk St');
   await page.type('form.grid-form input[name=city]', 'Kyiv');

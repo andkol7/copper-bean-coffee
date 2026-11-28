@@ -13,7 +13,7 @@ page('My account', async (app) => {
     h('h1', {}, `Hello, ${me.name}`),
     session.isStaff && notice(`You are logged in as ${me.role}: the order list below shows all customers' orders.`),
     h('section', { id: 'orders' }, h('h2', {}, session.isStaff ? 'All orders' : 'My orders'), await ordersTable()),
-    h('section', { id: 'addresses' }, h('h2', {}, 'Delivery addresses'), await addressesBlock()),
+    h('section', { id: 'addresses' }, h('h2', {}, 'Delivery addresses'), await addressesBlock(me)),
     h('section', { id: 'profile', class: 'two-columns' }, profileForm(me), passwordForm()),
   );
 });
@@ -61,7 +61,9 @@ async function ordersTable(pageNumber = 1) {
   return box;
 }
 
-async function addressesBlock() {
+// The recipient is whoever the courier hands the parcel to: usually you, so the name and phone start
+// from your profile, but they can be changed (a gift, an order to the office).
+async function addressesBlock(me) {
   const box = h('div');
   const list = h('div', { class: 'address-list' });
 
@@ -104,14 +106,15 @@ async function addressesBlock() {
         busy(form, async () => {
           await api('POST', '/addresses', formValues(form));
           form.reset();
+          prefill();
           await draw();
         });
       },
     },
     h('h3', {}, 'Add an address'),
     h('label', {}, 'Label (Home, Work…)', h('input', { name: 'label', maxlength: 40 })),
-    h('label', {}, 'Recipient', h('input', { name: 'name', required: true, maxlength: 100 })),
-    h('label', {}, 'Phone', h('input', { name: 'phone', required: true, placeholder: '+380 67 123 45 67' })),
+    h('label', {}, "Recipient's full name", h('input', { name: 'name', required: true, maxlength: 100, autocomplete: 'name' })),
+    h('label', {}, "Recipient's phone", h('input', { name: 'phone', required: true, placeholder: '+380 67 123 45 67', autocomplete: 'tel' })),
     h('label', {}, 'Street and number', h('input', { name: 'line1', required: true, maxlength: 120 })),
     h('label', {}, 'Apartment, floor (optional)', h('input', { name: 'line2', maxlength: 120 })),
     h('label', {}, 'City', h('input', { name: 'city', required: true, maxlength: 80 })),
@@ -121,6 +124,12 @@ async function addressesBlock() {
   );
 
   await draw();
+  // Fill the recipient from the profile (again after each save, since reset() empties the form).
+  function prefill() {
+    form.elements.name.value = me.name ?? '';
+    form.elements.phone.value = me.phone ?? '';
+  }
+  prefill();
   render(box, list, form);
   return box;
 }
