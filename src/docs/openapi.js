@@ -53,6 +53,8 @@ export const SUMMARIES = {
 
   'GET /api/v1/customers': 'Customers with order stats (staff)',
   'GET /api/v1/customers/:id': "A customer's card: stats, recent orders, addresses (staff)",
+
+  'GET /api/v1/request-logs': 'The request log: every API request with status, time and errors (admin)',
 };
 
 const DESCRIPTION = `A demo coffee shop API: products, shipping, addresses, orders with stock reservation and a
@@ -151,6 +153,7 @@ export function buildOpenApi(list = appRoutes) {
       { name: 'addresses', description: "Each user's saved delivery addresses" },
       { name: 'orders', description: 'Placing and handling orders' },
       { name: 'customers', description: 'The CRM view of customers' },
+      { name: 'request-logs', description: 'What happened: every API request, kept two weeks' },
       { name: 'system', description: 'Service checks' },
     ],
     paths,

@@ -2,8 +2,11 @@ import mongoose from 'mongoose';
 import { ZodError } from 'zod';
 import { HttpError } from '../lib/errors.js';
 
-const send = (res, status, code, message, details) =>
-  res.status(status).json({ error: { code, message, ...(details !== undefined && { details }) } });
+// res.locals.error is what the request log (middleware/requestLog.js) records about the failure.
+const send = (res, status, code, message, details, where) => {
+  res.locals.error = { code, message, ...(where && { where }) };
+  return res.status(status).json({ error: { code, message, ...(details !== undefined && { details }) } });
+};
 
 export function notFoundHandler(req, res) {
   send(res, 404, 'not_found', `Route ${req.method} ${req.path} not found`);
@@ -39,5 +42,5 @@ export function errorHandler(err, req, res, next) {
 
   // err.where is set by BaseController.wrap, e.g. "ProductsController.create".
   if (process.env.NODE_ENV !== 'test') console.error(`Unhandled error${err?.where ? ` in ${err.where}` : ''}:`, err);
-  return send(res, 500, 'internal_error', 'Something went wrong');
+  return send(res, 500, 'internal_error', 'Something went wrong', undefined, err?.where);
 }

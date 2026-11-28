@@ -40,9 +40,11 @@ export const requireAuth = (level) => {
     // deleted account takes effect at once, not when the 15-minute token runs out.
     const user = await User.findById(userId, { required: false });
     if (!user || user.deletedAt) throw unauthorized(settings.message('sessionExpired'));
-    if (!allowed.includes(user.role)) throw forbidden(settings.message('forbidden'));
 
+    // Known before the role check, so the request log records WHO was refused a 403 too.
+    // A refused request never reaches its handler, so this gives nothing away.
     req.user = user;
+    if (!allowed.includes(user.role)) throw forbidden(settings.message('forbidden'));
     next();
   };
 };

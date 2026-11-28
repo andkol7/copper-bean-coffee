@@ -49,6 +49,11 @@ const DEFAULTS = {
   customers: {
     recentOrders: 5,
   },
+  // The request log (collection requestlogs): every API request, kept keepDays days.
+  requestLogs: {
+    enabled: true,
+    keepDays: 14,
+  },
   // How many saved addresses one customer may keep.
   addresses: {
     maxPerUser: 10,

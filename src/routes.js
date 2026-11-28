@@ -8,6 +8,8 @@ import { otp } from './modules/otp/controller.js';
 import { otpRequest } from './modules/otp/schemas.js';
 import { products } from './modules/products/controller.js';
 import { productCreate, productListQuery, productUpdate } from './modules/products/schemas.js';
+import { requestLogs } from './modules/request-logs/controller.js';
+import { requestLogListQuery } from './modules/request-logs/schemas.js';
 import { sessions } from './modules/sessions/controller.js';
 import { sessionCreate, sessionDelete } from './modules/sessions/schemas.js';
 import { shippingMethods } from './modules/shipping/controller.js';
@@ -82,4 +84,7 @@ export const routes = [
   // ---------- Customers (CRM, read only: users with the role customer, with their order stats) ----------
   { method: 'get', path: '/api/v1/customers', auth: 'staff', validate: { query: customerListQuery }, handler: customers.list },
   { method: 'get', path: '/api/v1/customers/:id', auth: 'staff', handler: customers.get },
+
+  // ---------- Request log (admin) ----------
+  { method: 'get', path: '/api/v1/request-logs', auth: 'admin', validate: { query: requestLogListQuery }, handler: requestLogs.list },
 ];

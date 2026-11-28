@@ -52,10 +52,15 @@ Open **http://localhost:3000** for the shop, or **http://localhost:3000/docs** t
 | `JWT_SECRET` | At least 32 random characters; `.env.example` shows a command that makes one |
 | `SEED_ADMIN_EMAIL`, `SEED_ADMIN_PASSWORD` | The admin account `npm run seed` creates |
 | `ACCESS_TOKEN_TTL`, `REFRESH_TOKEN_DAYS` | Token lifetimes (15 minutes and 7 days by default) |
+| `RESEND_API_KEY`, `MAIL_FROM` | Email through [Resend](https://resend.com); without a key, emails are printed in the terminal |
 | `RUN_JOBS` | `true`: the server runs the periodic jobs itself; `false` when cron runs `npm run job` |
 | `PORT`, `NODE_ENV` | The usual |
 
-Login codes are not emailed locally: the server prints each email in its terminal.
+Without `RESEND_API_KEY` login codes are not emailed: the server prints each email in its terminal.
+
+Every API request is written to the `requestlogs` collection (method, path, status, time, user, and the
+error for failed ones; never request bodies), kept for 14 days. An admin reads it at `GET /api/v1/request-logs`
+(`?errors=true`, `?status=5xx`, `?path=orders`, `?user=<id>`, `?from=`, `?to=`).
 
 ### Trying it out
 

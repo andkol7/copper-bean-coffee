@@ -93,7 +93,7 @@ try {
   section('System');
   await expectStatus('server is up', 200, 'GET', '/health');
   const spec = await expectStatus('API description', 200, 'GET', '/docs/openapi.json');
-  check('the description lists every route', Object.values(spec.body.paths).reduce((n, m) => n + Object.keys(m).length, 0) === 32);
+  check('the description lists every route', Object.values(spec.body.paths).reduce((n, m) => n + Object.keys(m).length, 0) === 33);
   const nope = await expectStatus('unknown route, JSON error', 404, 'GET', '/api/v1/nothing');
   check('error shape { error: { code, message } }', nope.body?.error?.code === 'not_found');
 

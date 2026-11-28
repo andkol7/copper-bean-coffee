@@ -17,6 +17,10 @@ const schema = z.object({
   // Run the periodic jobs (src/jobs) inside the server process. Right for one small instance,
   // like the demo on Render. Set false when something else runs `npm run job` on a schedule.
   RUN_JOBS: z.stringbool().default(true),
+  // Email through Resend (resend.com). Without a key: printed in the terminal in development,
+  // refused in production. MAIL_FROM must be on a domain verified in Resend.
+  RESEND_API_KEY: z.string().startsWith('re_', 'RESEND_API_KEY starts with re_').optional(),
+  MAIL_FROM: z.string().optional(),
 });
 
 const env = Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== ''));
@@ -29,6 +33,11 @@ if (!parsed.success) {
 
 if (parsed.data.NODE_ENV === 'production' && parsed.data.JWT_SECRET === DEV_SECRET) {
   console.error('JWT_SECRET must be set in production.');
+  process.exit(1);
+}
+
+if (parsed.data.RESEND_API_KEY && !parsed.data.MAIL_FROM) {
+  console.error('RESEND_API_KEY is set but MAIL_FROM is not: say who the emails come from, e.g. "Copper Bean Coffee <login@mail.example.com>".');
   process.exit(1);
 }
 

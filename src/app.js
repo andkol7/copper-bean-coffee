@@ -5,14 +5,16 @@ import swaggerUi from 'swagger-ui-express';
 import { config } from './config.js';
 import { buildOpenApi } from './docs/openapi.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
+import { logRequests } from './middleware/requestLog.js';
 import { buildRouter } from './router.js';
 
 // Builds the Express app without starting it. server.js calls listen();
 // tests pass the app straight to Supertest, so no real port is needed.
 // Tests can pass their own route list; the real app uses src/routes.js.
 // Per-IP rate limits are off in tests by default (all requests come from 127.0.0.1);
-// the rate limit tests turn them on with rateLimits: true.
-export function createApp({ routes, rateLimits = config.NODE_ENV !== 'test' } = {}) {
+// the rate limit tests turn them on with rateLimits: true. The request log is off in tests too
+// (many test files have no database), requestlog.test.js turns it on.
+export function createApp({ routes, rateLimits = config.NODE_ENV !== 'test', requestLogs = config.NODE_ENV !== 'test' } = {}) {
   const app = express();
 
   // On Render, requests come through their proxy. Trusting one hop makes req.ip
@@ -24,6 +26,10 @@ export function createApp({ routes, rateLimits = config.NODE_ENV !== 'test' } = 
   // the browser fetch the /docs page's scripts over https even on http://localhost. On Render the
   // whole site is https anyway, so nothing is lost there.
   app.use(helmet({ contentSecurityPolicy: { directives: { upgradeInsecureRequests: null } } }));
+
+  // Every API request goes to the request log once it is answered (middleware/requestLog.js).
+  // First, so even a request with broken JSON is timed and logged.
+  if (requestLogs) app.use(logRequests);
 
   // JSON bodies only, and small ones: an API like this never needs more.
   app.use(express.json({ limit: '100kb' }));
